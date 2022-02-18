@@ -55,4 +55,12 @@ export const SidebarStyles = styled.div`
       }
     }
   }
+
+  .sidebar_chats {
+    background: #111b21;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
 `;

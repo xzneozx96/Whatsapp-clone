@@ -1,5 +1,6 @@
 import React from "react";
 import { SidebarStyles } from "../styles";
+import { SidebarChat } from "./SidebarChat";
 
 export function Sidebar() {
   return (
@@ -38,7 +39,24 @@ export function Sidebar() {
         </div>
       </div>
 
-      <div className="sidebar_chats"></div>
+      <div className="sidebar_chats">
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+        <SidebarChat/>
+      </div>
     </SidebarStyles>
   );
 }
