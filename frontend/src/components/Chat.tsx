@@ -1,6 +1,34 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import api from "../api";
+import { Message } from "../interfaces/message";
 import { ChatStyles } from "../styles";
+import moment from "moment";
 
 export function Chat() {
+  const userId = "12312sdqw4w2e";
+
+  const { conversationId } = useParams();
+
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    const getConversationMessages = async () => {
+      try {
+        const res = await api.get<{ conversation_messages: Message[] }>(
+          "message/" + conversationId
+        );
+        setMessages(res.data.conversation_messages);
+
+        console.log(res.data.conversation_messages);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    getConversationMessages();
+  }, [conversationId]);
+
   return (
     <ChatStyles>
       <div className="chat--main">
@@ -32,47 +60,36 @@ export function Chat() {
           <div className="cover_img"></div>
           <div className="empty_space"></div>
           <div className="chat_messages position-relative">
-            <div className="chat_msg">
-              <span className="msg_content">
-                What's up bro
-              </span>
-              <span className="msg_timestamp">
-                10:18 am
-              </span>
-            </div>
-
-            <div className="chat_msg">
-              <span className="msg_content">
-                What's up bro
-              </span>
-              <span className="msg_timestamp">
-                10:18 am
-              </span>
-            </div>
-
-            <div className="chat_msg me">
-              <span className="msg_content">
-                Hey there. What's up
-              </span>
-
-              <span className="msg_timestamp">
-                10:19 am
-              </span>
-            </div>
+            {messages &&
+              messages.map((msg) => (
+                <div
+                  className={`chat_msg ${msg.senderId === userId ? "me" : ""}`}
+                  key={msg._id}
+                >
+                  <span className="msg_content">{msg.message}</span>
+                  <span className="msg_timestamp">
+                    {moment(msg.createdAt).calendar()}
+                  </span>
+                </div>
+              ))}
           </div>
         </div>
 
         <footer>
           <div className="utils">
-            <i className='bx bx-smile'></i>
-            <i className='bx bx-link-alt'></i>
+            <i className="bx bx-smile"></i>
+            <i className="bx bx-link-alt"></i>
           </div>
 
           <div className="msg_input">
             <div className="input_field">
-              <input type="text" placeholder="Enter your message" className="form-control" />
+              <input
+                type="text"
+                placeholder="Enter your message"
+                className="form-control"
+              />
             </div>
-            <i className='bx bx-send' ></i>
+            <i className="bx bx-send"></i>
           </div>
         </footer>
       </div>

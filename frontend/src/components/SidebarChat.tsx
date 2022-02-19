@@ -1,6 +1,16 @@
 import { SidebarChatStyles } from "../styles";
+import { Conversation } from "../interfaces/conversation";
+import moment from "moment";
 
-export function SidebarChat() {
+export const SidebarChat: React.FC<{
+  conversation: Conversation;
+}> = (props) => {
+  const userId = "12312sdqw4w2e";
+
+  const getFriend = () => {
+    return props.conversation.members.find((member) => member !== userId);
+  };
+
   return (
     <SidebarChatStyles>
       <div className="avatar">
@@ -17,13 +27,14 @@ export function SidebarChat() {
 
       <div className="chat_info">
         <div className="chat_metadata">
-          <h6>Captain America</h6>
-          <span>Yesterday</span>
+          <h6>{getFriend()}</h6>
+          <span>{moment(props.conversation.updatedAt).calendar()}</span>
         </div>
         <div className="recent_msg">
-          <span>What's up bro ?</span>
+          {props.conversation.latestMsg ||
+            "You have not sent any message to this person. Let reach out to them now"}
         </div>
       </div>
     </SidebarChatStyles>
   );
-}
+};

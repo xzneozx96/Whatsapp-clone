@@ -74,7 +74,7 @@ export const ChatStyles = styled.div`
 
         .chat_msg {
           padding: 6px 8px;
-          margin-bottom: 12px;
+          margin-bottom: 5px;
           background: #202c33;
           width: fit-content;
           font-size: 14px;
@@ -89,8 +89,12 @@ export const ChatStyles = styled.div`
           .msg_timestamp {
             float: right;
             margin: 7px 0 -5px 10px;
-            color: hsla(0,0%,100%,0.6);
+            color: hsla(0, 0%, 100%, 0.6);
             font-size: 11px;
+          }
+
+          &:last-child {
+            margin-bottom: 12px;
           }
         }
       }
@@ -101,24 +105,28 @@ export const ChatStyles = styled.div`
       background: #202c33;
       display: flex;
       width: 100%;
-      padding: .75rem 1rem;
+      padding: 0.75rem 1rem;
 
       i {
-          width: 40px;
-          height: 40px;
-          line-height: 40px;
-          cursor: pointer;
-          color: #8696a0;
-        }
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        cursor: pointer;
+        color: #8696a0;
+      }
 
       .utils {
         display: flex;
-        align-items: center; 
+        align-items: center;
       }
 
       .msg_input {
         display: flex;
         flex: 1;
+
+        i {
+          text-align: right;
+        }
 
         .input_field {
           display: flex;
@@ -128,10 +136,6 @@ export const ChatStyles = styled.div`
             background: #2a3942;
             border: none;
             color: #e9edef;
-          }
-
-          i {
-            text-align: center;
           }
         }
       }

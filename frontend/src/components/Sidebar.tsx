@@ -1,8 +1,31 @@
-import React from "react";
 import { SidebarStyles } from "../styles";
 import { SidebarChat } from "./SidebarChat";
+import { useState, useEffect } from "react";
+import { NavLink } from "react-router-dom";
+
+import api from "../api";
+import { Conversation } from "../interfaces/conversation";
 
 export function Sidebar() {
+  const userId = "12312sdqw4w2e";
+
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  useEffect(() => {
+    const getMyConversations = async () => {
+      try {
+        const res = await api.get<{ my_conversations: Conversation[] }>(
+          "conversation/" + userId
+        );
+        setConversations(res.data.my_conversations);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    getMyConversations();
+  }, []);
+
   return (
     <SidebarStyles>
       <div className="sidebar_header">
@@ -40,22 +63,18 @@ export function Sidebar() {
       </div>
 
       <div className="sidebar_chats">
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
-        <SidebarChat/>
+        {conversations &&
+          conversations.map((c) => (
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "highlighted" : "undefined"
+              }
+              key={c._id}
+              to={c._id}
+            >
+              <SidebarChat conversation={c} />
+            </NavLink>
+          ))}
       </div>
     </SidebarStyles>
   );
