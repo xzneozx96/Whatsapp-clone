@@ -1,30 +1,13 @@
+import { NavLink } from "react-router-dom";
 import { SidebarStyles } from "../styles";
 import { SidebarChat } from "./SidebarChat";
-import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
-
-import api from "../api";
-import { Conversation } from "../interfaces/conversation";
+import { useSelector } from "react-redux";
+import { RootState } from "../app/store";
 
 export function Sidebar() {
-  const userId = "12312sdqw4w2e";
-
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-
-  useEffect(() => {
-    const getMyConversations = async () => {
-      try {
-        const res = await api.get<{ my_conversations: Conversation[] }>(
-          "conversation/" + userId
-        );
-        setConversations(res.data.my_conversations);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-
-    getMyConversations();
-  }, []);
+  const conversations = useSelector(
+    (state: RootState) => state.chatReducers.chats
+  );
 
   return (
     <SidebarStyles>
@@ -66,9 +49,7 @@ export function Sidebar() {
         {conversations &&
           conversations.map((c) => (
             <NavLink
-              className={({ isActive }) =>
-                isActive ? "highlighted" : "undefined"
-              }
+              className={({ isActive }) => (isActive ? "highlighted" : "")}
               key={c._id}
               to={c._id}
             >

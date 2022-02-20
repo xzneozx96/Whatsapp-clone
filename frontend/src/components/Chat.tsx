@@ -1,33 +1,149 @@
-import { useEffect, useState } from "react";
+import moment from "moment";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api";
 import { Message } from "../interfaces/message";
 import { ChatStyles } from "../styles";
-import moment from "moment";
+import { io, Socket } from "socket.io-client";
+import { Conversation } from "../interfaces/conversation";
+import { useAppDispatch } from "../app/hooks";
+import {
+  getConversationMessages,
+  getCurrentConversation,
+} from "../redux/chat-slice";
+import { RootState } from "../app/store";
+import { useSelector } from "react-redux";
 
 export function Chat() {
-  const userId = "12312sdqw4w2e";
+  const userId = localStorage.getItem("userID");
+  const dispatch = useAppDispatch();
 
-  const { conversationId } = useParams();
+  const { conversationId } = useParams<string>();
 
   const [messages, setMessages] = useState<Message[]>([]);
 
-  useEffect(() => {
-    const getConversationMessages = async () => {
-      try {
-        const res = await api.get<{ conversation_messages: Message[] }>(
-          "message/" + conversationId
-        );
-        setMessages(res.data.conversation_messages);
+  const [currentConversation, setCurrentConversation] =
+    useState<Conversation>();
 
-        console.log(res.data.conversation_messages);
-      } catch (err) {
-        console.log(err);
-      }
+  const [newMsg, setNewMsg] = useState("");
+
+  const [newArrivalMsg, setNewArrivalMsg] = useState<Message | null>(null);
+
+  const scrollRef = useRef() as React.MutableRefObject<HTMLDivElement>;
+
+  const [socket, setSocket] = useState<Socket>();
+
+  const online_friends = useSelector(
+    (state: RootState) => state.chatReducers.onlineFriends
+  );
+
+  const getFriend = () => {
+    return currentConversation?.members.find((member) => member !== userId);
+  };
+
+  const checkOnline = () => {
+    let friend = getFriend();
+
+    if (friend) {
+      return online_friends.includes(friend);
+    }
+  };
+
+  // useEffect(() => {
+  //   setSocket(
+  //     io("ws://localhost:3500", {
+  //       transports: ["websocket", "polling", "flashsocket"],
+  //     })
+  //   );
+  // }, []);
+
+  // useEffect(() => {
+  //   // emit "join" event to socket server every time a user visits the app
+  //   socket?.emit("join", userId);
+
+  //   // listen to "onlineUsers" event fired by socket server every time a user visits the app
+  //   // socket?.on("onlineUsers", (users) => {
+  //   //   console.log(users);
+  //   // });
+  // }, [socket, userId]);
+
+  // useEffect(() => {
+  //   socket?.on("getMsg", (data) => {
+  //     setNewArrivalMsg({
+  //       conversationId: conversationId || "",
+  //       senderId: data.senderId,
+  //       message: data.message,
+  //       createdAt: new Date().toISOString(),
+  //     });
+  //   });
+  // }, [socket, conversationId]);
+
+  // useEffect(() => {
+  //   newArrivalMsg &&
+  //     currentConversation?.members.includes(newArrivalMsg.senderId) &&
+  //     setMessages((prev) => [...prev, newArrivalMsg]);
+  // }, [newArrivalMsg, currentConversation]);
+
+  useEffect(() => {
+    dispatch(getCurrentConversation(conversationId || ""))
+      .unwrap()
+      .then((result) => {
+        setCurrentConversation(result.conversation);
+      });
+  }, [dispatch, conversationId]);
+
+  useEffect(() => {
+    dispatch(getConversationMessages(conversationId || ""))
+      .unwrap()
+      .then((result) => {
+        setMessages(result.conversation_messages);
+      });
+  }, [dispatch, conversationId]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSendMsg = async () => {
+    const new_msg = {
+      conversationId,
+      senderId: userId,
+      message: newMsg,
     };
 
-    getConversationMessages();
-  }, [conversationId]);
+    const receiverId = currentConversation?.members.find(
+      (mem) => mem !== userId
+    );
+
+    socket?.emit("sendMsg", {
+      senderId: userId,
+      receiverId,
+      message: newMsg,
+    });
+
+    try {
+      if (newMsg.length === 0) {
+        return;
+      }
+      // update database with new message
+      const res = await api.post<{ new_msg: Message }>("message", new_msg);
+      setMessages([...messages, res.data.new_msg]);
+
+      // clear the input field
+      setNewMsg("");
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const sendMsgOnEnter = (event: any) => {
+    if (newMsg.length > 0 && event.code === "Enter") {
+      handleSendMsg();
+      setNewMsg("");
+
+      return;
+    }
+  };
 
   return (
     <ChatStyles>
@@ -46,8 +162,8 @@ export function Chat() {
           </div>
 
           <div className="user_info">
-            <h6>Captain America</h6>
-            <span>online</span>
+            <h6>{getFriend()}</h6>
+            <span>{checkOnline() ? "online" : "offline"}</span>
           </div>
 
           <div className="chat_action">
@@ -65,6 +181,7 @@ export function Chat() {
                 <div
                   className={`chat_msg ${msg.senderId === userId ? "me" : ""}`}
                   key={msg._id}
+                  ref={scrollRef}
                 >
                   <span className="msg_content">{msg.message}</span>
                   <span className="msg_timestamp">
@@ -87,9 +204,14 @@ export function Chat() {
                 type="text"
                 placeholder="Enter your message"
                 className="form-control"
+                onChange={(event: any) => {
+                  setNewMsg(event.target.value);
+                }}
+                onKeyUp={sendMsgOnEnter}
+                value={newMsg}
               />
             </div>
-            <i className="bx bx-send"></i>
+            <i className="bx bx-send" onClick={handleSendMsg}></i>
           </div>
         </footer>
       </div>

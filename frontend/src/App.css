@@ -10,6 +10,7 @@
 .app--main {
   background: #101a20;
   display: flex;
+  height: 100%;
   margin: 0 auto;
   position: relative;
   box-shadow: 0 6px 18px rgba(11, 20, 26, 0.05);

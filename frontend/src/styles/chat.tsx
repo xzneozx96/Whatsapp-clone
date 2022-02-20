@@ -137,6 +137,10 @@ export const ChatStyles = styled.div`
             border: none;
             color: #e9edef;
           }
+
+          input::placeholder {
+            color: #8696a0;
+          }
         }
       }
     }

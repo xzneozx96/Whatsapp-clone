@@ -42,7 +42,24 @@ const myConversations = async (req, res) => {
   }
 };
 
+const getSingleConversation = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const conversation = await Conversation.findById(conversationId);
+
+    res.status(200).json({
+      conversation,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      msg: "No conversations found due to internal server error. Please try again later !",
+    });
+  }
+};
+
 module.exports = {
   newConversation,
   myConversations,
+  getSingleConversation,
 };

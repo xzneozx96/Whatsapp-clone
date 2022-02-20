@@ -20,6 +20,20 @@ export const SidebarChatStyles = styled.div`
     padding: 0 1rem;
     display: flex;
     align-items: center;
+
+    .avatar--main {
+      position: relative;
+
+      span {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        right: 0;
+        bottom: 0;
+        background-color: #31a24c;
+      }
+    }
   }
 
   .chat_info {

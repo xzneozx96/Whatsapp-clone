@@ -1,7 +1,8 @@
 import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit";
+import { chatReducers } from "../redux/chat-slice";
 
 export const store = configureStore({
-  reducer: {},
+  reducer: { chatReducers },
 });
 
 export type AppDispatch = typeof store.dispatch;

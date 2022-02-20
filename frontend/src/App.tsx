@@ -1,13 +1,22 @@
+import { Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
+import { useAppDispatch } from "./app/hooks";
 import { Chat, Intro, Sidebar } from "./components";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { getMyConversations } from "./redux/chat-slice";
 import { useSocket } from "./hooks/useSocket";
 
 function App() {
-  // const dispatch = useDispatch();
-  const userId = "12312sdqw4w2e";
+  const userId = localStorage.getItem("userID") || "";
 
-  useSocket(userId);
+  // fetch all user's conversations
+  const dispatch = useAppDispatch();
+
+  useSocket(userId, dispatch);
+
+  useEffect(() => {
+    dispatch(getMyConversations(userId));
+  }, [dispatch, userId]);
 
   return (
     <div className="app--wrap">
