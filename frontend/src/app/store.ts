@@ -3,6 +3,11 @@ import { chatReducers } from "../redux/chat-slice";
 
 export const store = configureStore({
   reducer: { chatReducers },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      // allow Non-Serializable Data
+      serializableCheck: false,
+    }),
 });
 
 export type AppDispatch = typeof store.dispatch;

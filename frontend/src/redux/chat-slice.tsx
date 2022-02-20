@@ -2,6 +2,7 @@ import api from "../api";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { Conversation } from "../interfaces/conversation";
 import { Message } from "../interfaces/message";
+import { Socket } from "socket.io-client";
 
 export const getMyConversations = createAsyncThunk(
   "chats/getMyConversations",
@@ -46,11 +47,44 @@ export const getConversationMessages = createAsyncThunk(
   }
 );
 
+export const sendMsg = createAsyncThunk(
+  "chats/sendMsg",
+  async (new_msg: Message, { rejectWithValue }) => {
+    try {
+      const res = await api.post<{ new_msg: Message }>("message", new_msg);
+
+      return { new_msg: res.data.new_msg };
+    } catch (err: any) {
+      return rejectWithValue(err.response.data.msg);
+    }
+  }
+);
+
 const initialChatState: {
+  socket: Socket | null;
   chats: Conversation[];
   currentChat: Conversation | null;
   onlineFriends: string[];
-} = { chats: [], currentChat: null, onlineFriends: [] };
+  newArrivalMsg: {
+    _id: string;
+    conversationId: string;
+    senderId: string;
+    message: string;
+    createdAt: string;
+  };
+} = {
+  socket: null,
+  chats: [],
+  currentChat: null,
+  onlineFriends: [],
+  newArrivalMsg: {
+    _id: "",
+    conversationId: "",
+    senderId: "",
+    message: "",
+    createdAt: "",
+  },
+};
 
 const chatSlice = createSlice({
   name: "chats",
@@ -58,8 +92,26 @@ const chatSlice = createSlice({
 
   // below includes reducers that handle sync actions
   reducers: {
+    setSocket: (state, action) => {
+      state.socket = action.payload;
+    },
+
     getOnlineFriends: (state, action) => {
       state.onlineFriends = action.payload;
+    },
+
+    friendLeave: (state, action) => {
+      state.onlineFriends = state.onlineFriends.filter(
+        (friendId) => friendId !== action.payload
+      );
+    },
+
+    friendConnect: (state, action) => {
+      state.onlineFriends.push(action.payload);
+    },
+
+    newArrivalMsg: (state, action) => {
+      state.newArrivalMsg = action.payload;
     },
   },
 

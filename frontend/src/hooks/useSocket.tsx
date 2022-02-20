@@ -9,22 +9,37 @@ export function useSocket(userId: string, dispatch: any) {
       transports: ["websocket", "polling", "flashsocket"],
     });
 
+    dispatch(chatActions.setSocket(socket));
+
     // "join" is the name of the event that our socket server is listening to
     socket.emit("join", userId);
 
     // listen to "online" event fired by socket server every time a user visits the app
-    socket.on("online", (users) => {
-      console.log("Online", users);
-      dispatch(chatActions.getOnlineFriends(users));
+    socket.on("online", (user) => {
+      dispatch(chatActions.friendConnect(user));
     });
 
     socket.on("friends", (users) => {
-      console.log("Online Friends", users);
       dispatch(chatActions.getOnlineFriends(users));
     });
 
-    socket.on("offline", (users) => {
-      console.log("Offline Friends", users);
+    socket.on("offline", (user) => {
+      dispatch(chatActions.friendLeave(user));
     });
+
+    socket.on(
+      "receiveMsg",
+      ({ _id, conversationId, senderId, message, createdAt }) => {
+        dispatch(
+          chatActions.newArrivalMsg({
+            _id,
+            conversationId,
+            senderId,
+            message,
+            createdAt,
+          })
+        );
+      }
+    );
   }, [userId, dispatch]);
 }

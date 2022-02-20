@@ -61,10 +61,30 @@ const socketServer = (server) => {
     });
 
     // handle when user is sending and receiving messages
-    socket.on("sendMsg", ({ senderId, receiverId, message }) => {
-      const friend = getFriend(receiverId);
-      io.to(friend.socketId).emit("getMsg", { senderId, message });
-    });
+    socket.on(
+      "sendMsg",
+      async ({
+        _id,
+        conversationId,
+        senderId,
+        receiverId,
+        message,
+        createdAt,
+      }) => {
+        const friend = users.get(receiverId);
+
+        friend?.sockets.forEach((socketId) => {
+          io.to(socketId).emit("receiveMsg", {
+            _id,
+            conversationId,
+            senderId,
+            receiverId,
+            message,
+            createdAt,
+          });
+        });
+      }
+    );
 
     // handle when a user leaves
     socket.on("disconnect", async () => {

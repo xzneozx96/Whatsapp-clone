@@ -23,6 +23,20 @@ export const ChatStyles = styled.div`
 
       .avatar {
         padding-right: 1rem;
+
+        .avatar--main {
+          position: relative;
+
+          span {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            right: 0;
+            bottom: 0;
+            background-color: #31a24c;
+          }
+        }
       }
 
       .user_info {
