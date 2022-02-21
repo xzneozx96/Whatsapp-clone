@@ -20,12 +20,12 @@ const newMessage = async (req, res) => {
       latestMsg: new_msg.message,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       new_msg,
     });
   } catch (err) {
     console.log(err);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       msg: "Message has not been sent due to internal server error. Please try again later !",
     });
@@ -41,12 +41,12 @@ const conversationMessages = async (req, res) => {
       conversationId,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       conversation_messages,
     });
   } catch (err) {
     console.log(err);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       msg: "Internal server error. Please try again later !",
     });

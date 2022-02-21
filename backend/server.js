@@ -1,13 +1,18 @@
-const express = require("express");
-const app = express();
-const cors = require("cors");
-const config = require("./config");
 const http = require("http");
+const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
+
+const app = express();
+
+const config = require("./config");
+const verifyJWT = require("./middleware/verifyJWT");
 
 const PORT = config.serverPort;
 
 // register routes
+const authRoutes = require("./routes/auth");
 const conversationRoutes = require("./routes/conversation");
 const messageRoutes = require("./routes/message");
 
@@ -26,8 +31,13 @@ app.use(express.urlencoded({ extended: false }));
 // built-in middleware to handle json data submitted via the url
 app.use(express.json());
 
+// middleware for cookies
+app.use(cookieParser());
+
 // routes registration
-// routes
+app.use("/api/auth", authRoutes);
+
+// app.use(verifyJWT);
 app.use("/api/conversation", conversationRoutes);
 app.use("/api/message", messageRoutes);
 
@@ -43,9 +53,12 @@ mongoose
 
     const socketServer = require("./socket");
     socketServer(myServer);
-    console.log("Database has been connected ! Server listening on port 3500");
     myServer.listen(PORT);
+
+    console.log("Database has been connected ! Server listening on port 3500");
+    return Promise.resolve("Database connected");
   })
   .catch((err) => {
     console.log("Connecting to DB has failed", err);
+    return Promise.reject("Internal Server Error");
   });

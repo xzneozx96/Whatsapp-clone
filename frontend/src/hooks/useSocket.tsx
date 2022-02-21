@@ -20,6 +20,8 @@ export function useSocket(userId: string, dispatch: any) {
     });
 
     socket.on("friends", (users) => {
+      console.log('Friends', users);
+      
       dispatch(chatActions.getOnlineFriends(users));
     });
 

@@ -3,11 +3,20 @@ import { SidebarStyles } from "../styles";
 import { SidebarChat } from "./SidebarChat";
 import { useSelector } from "react-redux";
 import { RootState } from "../app/store";
+import { useAppDispatch } from "../app/hooks";
+import { logout } from "../redux/auth-slice";
 
 export function Sidebar() {
+  const dispatch = useAppDispatch();
   const conversations = useSelector(
     (state: RootState) => state.chatReducers.chats
   );
+
+  const user = useSelector((state: RootState) => state.authReducers.user)  
+
+  const onLogout = () => {
+    dispatch(logout())
+  }
 
   return (
     <SidebarStyles>
@@ -24,10 +33,10 @@ export function Sidebar() {
           </svg>
 
           <div className="user_info">
-            <h6>Ross Geller</h6>
+            <h6>{user.username}</h6>
           </div>
         </div>
-        <div className="utils">
+        <div className="utils" onClick={onLogout}>
           <span>
             <i className="bx bx-log-out"></i>
           </span>

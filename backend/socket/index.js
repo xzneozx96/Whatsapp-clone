@@ -13,7 +13,6 @@ const socketServer = (server) => {
     // handle when a user connects
     // "join" is the name of the event that will be fired on the front-end every time a user visit our app. The server is simple listening to this "join" event
     socket.on("join", async (userId) => {
-      console.log("a user has connected", userId, socket.id);
       // 1. keep track of online users
       let current_sockets = [];
 
@@ -44,8 +43,8 @@ const socketServer = (server) => {
 
       // notify this user's friend that he/she is now online
       for (let i = 0; i < chatters.length; i++) {
-        if (users.has(chatters[i])) {
-          const chatter = users.get(chatters[i]);
+        if (users.has(chatters[i].userId)) {
+          const chatter = users.get(chatters[i].userId);
 
           chatter.sockets.forEach((socketId) => {
             io.to(socketId).emit("online", userId);
@@ -71,6 +70,14 @@ const socketServer = (server) => {
         message,
         createdAt,
       }) => {
+        console.log({
+          _id,
+          conversationId,
+          senderId,
+          receiverId,
+          message,
+          createdAt,
+        });
         const friend = users.get(receiverId);
 
         friend?.sockets.forEach((socketId) => {
@@ -115,8 +122,8 @@ const socketServer = (server) => {
 
           // notify this user's friend that he/she is now offline
           for (let i = 0; i < chatters.length; i++) {
-            if (users.has(chatters[i])) {
-              const chatter = users.get(chatters[i]);
+            if (users.has(chatters[i].userId)) {
+              const chatter = users.get(chatters[i].userId);
 
               chatter.sockets.forEach((socketId) => {
                 io.to(socketId).emit("offline", disconnected_user.userId);
@@ -137,11 +144,11 @@ const socketServer = (server) => {
 
 async function getChatters(userId) {
   const my_conversations = await Conversation.find({
-    members: { $in: [userId] },
+    members: { $elemMatch: { userId: userId } },
   });
 
   return my_conversations.map((conversation) =>
-    conversation.members.find((member) => member !== userId)
+    conversation.members.find((member) => member.userId !== userId)
   );
 }
 

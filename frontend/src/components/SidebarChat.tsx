@@ -7,21 +7,25 @@ import { RootState } from "../app/store";
 export const SidebarChat: React.FC<{
   conversation: Conversation;
 }> = (props) => {
-  const userId = localStorage.getItem("userID");
+    const user = useSelector((state: RootState) => state.authReducers.user)  
+
 
   const online_friends = useSelector(
     (state: RootState) => state.chatReducers.onlineFriends
   );
 
+  console.log(online_friends);
+  
+
   const getFriend = () => {
-    return props.conversation.members.find((member) => member !== userId);
+    return props.conversation.members.find((member) => member.userId !== user.userId);
   };
 
   const checkOnline = () => {
     let friend = getFriend();
 
     if (friend) {
-      return online_friends.includes(friend);
+      return online_friends.includes(friend.userId);
     }
   };
 
@@ -44,7 +48,7 @@ export const SidebarChat: React.FC<{
 
       <div className="chat_info">
         <div className="chat_metadata">
-          <h6>{getFriend()}</h6>
+          <h6>{getFriend()?.username}</h6>
           <span>{moment(props.conversation.updatedAt).calendar()}</span>
         </div>
         <div className="recent_msg">

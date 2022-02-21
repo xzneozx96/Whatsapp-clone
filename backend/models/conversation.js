@@ -1,17 +1,24 @@
 const mongoose = require("mongoose");
 
+var MemberSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+  },
+});
+
 const ConversationSchema = new mongoose.Schema(
   {
     members: {
       type: Array,
-      required: true,
       default: [],
     },
     latestMsg: {
       type: String,
+      default: "",
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Conversation", ConversationSchema);
+module.exports = mongoose.model("conversation", ConversationSchema);

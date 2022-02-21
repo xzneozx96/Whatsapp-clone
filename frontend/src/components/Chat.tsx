@@ -13,7 +13,6 @@ import {
 import { ChatStyles } from "../styles";
 
 export function Chat() {
-  const userId = localStorage.getItem("userID") || "";
   const dispatch = useAppDispatch();
 
   const { conversationId } = useParams<string>();
@@ -24,6 +23,7 @@ export function Chat() {
   const [newMsg, setNewMsg] = useState("");
   // const [newArrivalMsg, setNewArrivalMsg] = useState<Message | null>(null);
 
+  const user = useSelector((state: RootState) => state.authReducers.user);
   const socket = useSelector((state: RootState) => state.chatReducers.socket);
   const currentConversation = useSelector(
     (state: RootState) => state.chatReducers.currentChat
@@ -52,14 +52,16 @@ export function Chat() {
   }, [messages]);
 
   const getFriend = () => {
-    return currentConversation?.members.find((member) => member !== userId);
+    return currentConversation?.members.find(
+      (member) => member.userId !== user.userId
+    );
   };
 
   const checkOnline = () => {
     let friend = getFriend();
 
     if (friend) {
-      return online_friends.includes(friend);
+      return online_friends.includes(friend.userId);
     }
   };
 
@@ -67,7 +69,9 @@ export function Chat() {
     // if new msg arrives and belongs to the current conversation update the chat history - messages
     if (
       newArrivalMsg &&
-      currentConversation?.members.includes(newArrivalMsg.senderId)
+      currentConversation?.members.some(
+        (mem) => mem.userId === newArrivalMsg.senderId
+      )
     ) {
       setMessages((prev) => [...prev, newArrivalMsg]);
     }
@@ -76,36 +80,18 @@ export function Chat() {
   const handleSendMsg = async () => {
     const new_msg = {
       conversationId: conversationId || "",
-      senderId: userId,
+      senderId: user.userId || "",
       message: newMsg,
     };
 
-    // const receiverId =
-    //   currentConversation?.members.find((mem) => mem !== userId) || "";
-
-    // socket?.emit("sendMsg", {
-    //   senderId: userId,
-    //   receiverId,
-    //   message: newMsg,
-    // });
-
     const result = await dispatch(sendMsg(new_msg)).unwrap();
-    // .unwrap()
-    // .then((result) => {
-    //   socket?.emit("sendMsg", {
-    //     ...result,
-    //     receiverId,
-    //   });
-
-    //   console.log(result);
-
-    //   setMessages([...messages, result.new_msg]);
-    //   setNewMsg("");
-    // });
 
     // notify the socket server every time new message sent
-    const receiverId =
-      currentConversation?.members.find((mem) => mem !== userId) || "";
+    const receiver = currentConversation?.members.find(
+      (mem) => mem.userId !== user.userId
+    );
+
+    const receiverId = receiver!.userId;
 
     socket?.emit("sendMsg", {
       ...result.new_msg,
@@ -147,7 +133,7 @@ export function Chat() {
           </div>
 
           <div className="user_info">
-            <h6>{getFriend()}</h6>
+            <h6>{getFriend()?.username}</h6>
             <span>{checkOnline() ? "online" : "offline"}</span>
           </div>
 
@@ -164,7 +150,9 @@ export function Chat() {
             {messages &&
               messages.map((msg) => (
                 <div
-                  className={`chat_msg ${msg.senderId === userId ? "me" : ""}`}
+                  className={`chat_msg ${
+                    msg.senderId === user.userId ? "me" : ""
+                  }`}
                   key={msg._id}
                   ref={scrollRef}
                 >
