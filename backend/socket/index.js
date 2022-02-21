@@ -70,14 +70,6 @@ const socketServer = (server) => {
         message,
         createdAt,
       }) => {
-        console.log({
-          _id,
-          conversationId,
-          senderId,
-          receiverId,
-          message,
-          createdAt,
-        });
         const friend = users.get(receiverId);
 
         friend?.sockets.forEach((socketId) => {

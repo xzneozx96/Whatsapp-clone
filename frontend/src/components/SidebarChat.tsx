@@ -7,18 +7,16 @@ import { RootState } from "../app/store";
 export const SidebarChat: React.FC<{
   conversation: Conversation;
 }> = (props) => {
-    const user = useSelector((state: RootState) => state.authReducers.user)  
-
+  const user = useSelector((state: RootState) => state.authReducers.user);
 
   const online_friends = useSelector(
     (state: RootState) => state.chatReducers.onlineFriends
   );
 
-  console.log(online_friends);
-  
-
   const getFriend = () => {
-    return props.conversation.members.find((member) => member.userId !== user.userId);
+    return props.conversation.members.find(
+      (member) => member.userId !== user.userId
+    );
   };
 
   const checkOnline = () => {

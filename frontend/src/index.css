@@ -92,3 +92,35 @@ input:focus {
   background: rgb(0, 128, 105) !important;
   border-color: rgb(0, 128, 105) !important;
 }
+
+/* emoji picker */
+.emoji-mart-dark {
+  border: none !important;
+  background-color: #202c33 !important;
+}
+
+.emoji-mart-anchor {
+  color: #8696a0 !important;
+}
+
+.emoji-mart-anchor .emoji-mart-anchor-bar {
+  background-color: rgb(49, 162, 76) !important;
+}
+
+.emoji-mart-dark .emoji-mart-search input {
+  background-color: #2a3942 !important;
+  border: none !important;
+  padding: 8px 12px !important;
+}
+
+.emoji-mart-dark .emoji-mart-search {
+  margin: 12px 0 !important;
+}
+
+.emoji-mart-dark .emoji-mart-search input::placeholder {
+  color: #8696a0;
+}
+
+.emoji-mart-dark .emoji-mart-category-label span {
+  background-color: transparent !important;
+}

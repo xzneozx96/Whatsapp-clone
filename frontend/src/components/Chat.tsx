@@ -1,5 +1,5 @@
 import moment from "moment";
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useAppDispatch } from "../app/hooks";
@@ -11,6 +11,8 @@ import {
   sendMsg,
 } from "../redux/chat-slice";
 import { ChatStyles } from "../styles";
+import "emoji-mart/css/emoji-mart.css";
+import { Picker } from "emoji-mart";
 
 export function Chat() {
   const dispatch = useAppDispatch();
@@ -18,9 +20,11 @@ export function Chat() {
   const { conversationId } = useParams<string>();
 
   const scrollRef = useRef() as React.MutableRefObject<HTMLDivElement>;
+  const msgInput = useRef() as RefObject<HTMLInputElement>;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMsg, setNewMsg] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   // const [newArrivalMsg, setNewArrivalMsg] = useState<Message | null>(null);
 
   const user = useSelector((state: RootState) => state.authReducers.user);
@@ -51,6 +55,18 @@ export function Chat() {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    // if new msg arrives and belongs to the current conversation update the chat history - messages
+    if (
+      newArrivalMsg &&
+      currentConversation?.members.some(
+        (mem) => mem.userId === newArrivalMsg.senderId
+      )
+    ) {
+      setMessages((prev) => [...prev, newArrivalMsg]);
+    }
+  }, [newArrivalMsg, currentConversation, conversationId]);
+
   const getFriend = () => {
     return currentConversation?.members.find(
       (member) => member.userId !== user.userId
@@ -65,17 +81,25 @@ export function Chat() {
     }
   };
 
-  useEffect(() => {
-    // if new msg arrives and belongs to the current conversation update the chat history - messages
-    if (
-      newArrivalMsg &&
-      currentConversation?.members.some(
-        (mem) => mem.userId === newArrivalMsg.senderId
-      )
-    ) {
-      setMessages((prev) => [...prev, newArrivalMsg]);
-    }
-  }, [newArrivalMsg, currentConversation, conversationId]);
+  const selectEmoji = (emoji: any) => {
+    const starting_point = msgInput.current!.selectionStart || 0;
+    const ending_point = msgInput.current?.selectionEnd || 0;
+
+    const emoji_length = emoji.native.length;
+    const msgInput_value = msgInput.current?.value;
+
+    setNewMsg(
+      msgInput_value?.substring(0, starting_point) +
+        emoji.native +
+        msgInput_value?.substring(ending_point, msgInput_value.length)
+    );
+
+    // re-focus on the input field after selecting an emoji
+    msgInput.current?.focus();
+
+    // set cursor to the end of the message
+    msgInput.current!.selectionEnd = emoji_length + ending_point;
+  };
 
   const handleSendMsg = async () => {
     const new_msg = {
@@ -98,10 +122,9 @@ export function Chat() {
       receiverId,
     });
 
-    console.log({ ...result.new_msg });
-
     setMessages([...messages, result.new_msg]);
     setNewMsg("");
+    setShowEmojiPicker(false);
   };
 
   const sendMsgOnEnter = (event: any) => {
@@ -167,13 +190,34 @@ export function Chat() {
 
         <footer>
           <div className="utils">
-            <i className="bx bx-smile"></i>
+            <i
+              className="bx bx-smile"
+              onClick={() => {
+                setShowEmojiPicker(!showEmojiPicker);
+              }}
+            ></i>
             <i className="bx bx-link-alt"></i>
           </div>
+
+          {showEmojiPicker && (
+            <Picker
+              theme="dark"
+              title="Pick your emoji…"
+              emoji="point_up"
+              style={{
+                position: "absolute",
+                bottom: "64px",
+                right: "0",
+                width: "100%",
+              }}
+              onSelect={selectEmoji}
+            />
+          )}
 
           <div className="msg_input">
             <div className="input_field">
               <input
+                ref={msgInput}
                 type="text"
                 placeholder="Enter your message"
                 className="form-control"
