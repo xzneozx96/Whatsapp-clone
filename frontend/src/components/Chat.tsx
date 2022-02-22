@@ -38,6 +38,9 @@ export function Chat() {
   const newArrivalMsg = useSelector(
     (state: RootState) => state.chatReducers.newArrivalMsg
   );
+  const senderTyping = useSelector(
+    (state: RootState) => state.chatReducers.senderTyping
+  );
 
   useEffect(() => {
     dispatch(getCurrentConversation(conversationId || ""));
@@ -115,6 +118,8 @@ export function Chat() {
       (mem) => mem.userId !== user.userId
     );
 
+    // emit typing event to socket server
+
     const receiverId = receiver!.userId;
 
     socket?.emit("sendMsg", {
@@ -128,6 +133,34 @@ export function Chat() {
   };
 
   const sendMsgOnEnter = (event: any) => {
+    // emit typing event to socket server
+    const receiver = currentConversation?.members.find(
+      (mem) => mem.userId !== user.userId
+    );
+
+    const msgInput_value = msgInput.current?.value;
+
+    if (msgInput_value!.length > 0) {
+      const typing_sender = {
+        sender: user.username,
+        receiverId: receiver?.userId,
+        typing: true,
+        conversationId,
+      };
+      socket?.emit("meTyping", typing_sender);
+    }
+
+    if (msgInput_value!.length === 0) {
+      const typing_sender = {
+        sender: user.username,
+        receiverId: receiver?.userId,
+        typing: false,
+        conversationId,
+      };
+      socket?.emit("meTyping", typing_sender);
+    }
+
+    // send message when press enter
     if (newMsg.length > 0 && event.code === "Enter") {
       handleSendMsg();
       setNewMsg("");
@@ -185,6 +218,17 @@ export function Chat() {
                   </span>
                 </div>
               ))}
+
+            {senderTyping.typing &&
+              senderTyping.conversationId === conversationId && (
+                <div className="typing_indicator">
+                  <div className="typing_indicator--bubbles">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+              )}
           </div>
         </div>
 

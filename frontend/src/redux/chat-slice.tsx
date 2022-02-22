@@ -72,6 +72,12 @@ const initialChatState: {
     message: string;
     createdAt: string;
   };
+  senderTyping: {
+    sender: string;
+    receiverId: string;
+    typing: boolean;
+    conversationId: string;
+  };
 } = {
   socket: null,
   chats: [],
@@ -83,6 +89,12 @@ const initialChatState: {
     senderId: "",
     message: "",
     createdAt: "",
+  },
+  senderTyping: {
+    sender: "",
+    receiverId: "",
+    typing: false,
+    conversationId: "",
   },
 };
 
@@ -112,6 +124,10 @@ const chatSlice = createSlice({
 
     newArrivalMsg: (state, action) => {
       state.newArrivalMsg = action.payload;
+    },
+
+    senderTyping: (state, action) => {
+      state.senderTyping = action.payload;
     },
   },
 

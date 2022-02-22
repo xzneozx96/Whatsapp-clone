@@ -85,6 +85,17 @@ const socketServer = (server) => {
       }
     );
 
+    // handle when a friend is typing
+    socket.on("meTyping", (typing_sender) => {
+      const receiver = users.get(typing_sender.receiverId);
+
+      if (receiver) {
+        receiver.sockets.forEach((socketId) => {
+          io.to(socketId).emit("friendTyping", typing_sender);
+        });
+      }
+    });
+
     // handle when a user leaves
     socket.on("disconnect", async () => {
       // we don't know which user has disconnect, we only know the socket.id

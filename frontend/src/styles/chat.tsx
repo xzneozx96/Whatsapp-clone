@@ -112,6 +112,53 @@ export const ChatStyles = styled.div`
           }
         }
       }
+
+      .typing_indicator {
+        background-color: #202c33;
+        width: 40px;
+        height: 26px;
+        margin-bottom: 12px;
+        display: block;
+        border-radius: 30% / 50%;
+
+        &--bubbles {
+          text-align: center;
+
+          span {
+            display: inline-block;
+            background-color: #8696a0;
+            width: 6px;
+            height: 6px;
+            border-radius: 100%;
+            margin-right: 2px;
+            animation: bob 1.5s infinite;
+
+            // SAFARI GLITCH
+            &:nth-child(1) {
+              animation-delay: -0.5s;
+            }
+            &:nth-child(2) {
+              animation-delay: -0.35s;
+            }
+            &:nth-child(3) {
+              animation-delay: -0.2s;
+              margin-right: 0;
+            }
+          }
+
+          @keyframes bob {
+            10% {
+              transform: translateY(-5px);
+              background-color: #9e9da2;
+            }
+
+            50% {
+              transform: translateY(0);
+              background-color: #8696a0;
+            }
+          }
+        }
+      }
     }
 
     footer {

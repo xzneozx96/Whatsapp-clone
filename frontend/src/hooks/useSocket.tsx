@@ -19,16 +19,30 @@ export function useSocket(userId: string, dispatch: any) {
         socket.emit("join", userId);
 
         // listen to "online" event fired by socket server every time a user visits the app
-        socket.on("online", (user) => {
-          dispatch(chatActions.friendConnect(user));
+        socket.on("online", (userId: string) => {
+          dispatch(chatActions.friendConnect(userId));
         });
 
-        socket.on("friends", (users) => {
-          dispatch(chatActions.getOnlineFriends(users));
+        socket.on("friends", (userIds: string[]) => {
+          dispatch(chatActions.getOnlineFriends(userIds));
         });
 
-        socket.on("offline", (user) => {
-          dispatch(chatActions.friendLeave(user));
+        socket.on(
+          "friendTyping",
+          (typing_sender: {
+            sender: string;
+            receiverid: string;
+            typing: boolean;
+            conversationId: string;
+          }) => {
+            console.log(typing_sender);
+
+            dispatch(chatActions.senderTyping(typing_sender));
+          }
+        );
+
+        socket.on("offline", (userId: string) => {
+          dispatch(chatActions.friendLeave(userId));
         });
 
         socket.on(
