@@ -66,5 +66,12 @@ export const SidebarChatStyles = styled.div`
       font-size: 14px;
       color: #8696a0;
     }
+
+    .typing_indicator {
+      margin-top: 3px;
+      font-size: 14px;
+      color: #00a884;
+      font-weight: 500;
+    }
   }
 `;

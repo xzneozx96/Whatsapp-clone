@@ -1,9 +1,9 @@
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import { Button, Checkbox, Form, Input } from "antd";
+import { Button, Form, Input } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../app/hooks";
 import { login } from "../redux/auth-slice";
-import { openErrNotification } from "../utils/errorNoti";
+import { openErrNotification } from "../utils/antdNoti";
 
 export const LoginPage = () => {
   const dispatch = useAppDispatch();
@@ -25,10 +25,6 @@ export const LoginPage = () => {
 
   const registerNavigation = () => {
     navigate("/signup");
-  };
-
-  const forgotPwNavigation = () => {
-    navigate("/forgot-pw");
   };
 
   return (

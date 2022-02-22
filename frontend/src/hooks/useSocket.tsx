@@ -3,9 +3,9 @@ import { useEffect } from "react";
 import { io } from "socket.io-client";
 import { chatActions, getMyConversations } from "../redux/chat-slice";
 
-export function useSocket(userId: string, dispatch: any) {
+export function useSocket(currentUserId: string, dispatch: any) {
   useEffect(() => {
-    dispatch(getMyConversations(userId || ""))
+    dispatch(getMyConversations(currentUserId || ""))
       .unwrap()
       .then(() => {
         // set up socket-io on client-side only after all conversation have been fetched to prevent unexpected bugs related to socket server response faster than nodejs server
@@ -16,13 +16,14 @@ export function useSocket(userId: string, dispatch: any) {
         dispatch(chatActions.setSocket(socket));
 
         // "join" is the name of the event that our socket server is listening to
-        socket.emit("join", userId);
+        socket.emit("join", currentUserId);
 
-        // listen to "online" event fired by socket server every time a user visits the app
-        socket.on("online", (userId: string) => {
-          dispatch(chatActions.friendConnect(userId));
+        // update the status of a chatter to online as soon as they log in
+        socket.on("online", (currentUserId: string) => {
+          dispatch(chatActions.friendConnect(currentUserId));
         });
 
+        // get all online chatters and update their status once user loads our app
         socket.on("friends", (userIds: string[]) => {
           dispatch(chatActions.getOnlineFriends(userIds));
         });
@@ -35,14 +36,13 @@ export function useSocket(userId: string, dispatch: any) {
             typing: boolean;
             conversationId: string;
           }) => {
-            console.log(typing_sender);
-
             dispatch(chatActions.senderTyping(typing_sender));
           }
         );
 
-        socket.on("offline", (userId: string) => {
-          dispatch(chatActions.friendLeave(userId));
+        // update the status of a chatter to offline as soon as they close the tab (not log out)
+        socket.on("offline", (currentUserId: string) => {
+          dispatch(chatActions.friendLeave(currentUserId));
         });
 
         socket.on(
@@ -55,10 +55,11 @@ export function useSocket(userId: string, dispatch: any) {
                 senderId,
                 message,
                 createdAt,
+                currentUserId,
               })
             );
           }
         );
       });
-  }, [userId, dispatch]);
+  }, [currentUserId, dispatch]);
 }

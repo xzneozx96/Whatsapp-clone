@@ -4,6 +4,28 @@ import { Conversation } from "../interfaces/conversation";
 import { Message } from "../interfaces/message";
 import { Socket } from "socket.io-client";
 
+interface ChatState {
+  socket: Socket | null;
+  chats: Conversation[];
+  currentChat: Conversation | null;
+  onlineFriends: string[];
+  newArrivalMsg: {
+    _id: string;
+    conversationId: string;
+    senderId: string;
+    message: string;
+    createdAt: string;
+    currentUserId?: string;
+  };
+  senderTyping: {
+    sender: string;
+    receiverId: string;
+    typing: boolean;
+    conversationId: string;
+  };
+  scrollBottom: number;
+}
+
 export const getMyConversations = createAsyncThunk(
   "chats/getMyConversations",
   async (userId: string, { rejectWithValue }) => {
@@ -60,25 +82,7 @@ export const sendMsg = createAsyncThunk(
   }
 );
 
-const initialChatState: {
-  socket: Socket | null;
-  chats: Conversation[];
-  currentChat: Conversation | null;
-  onlineFriends: string[];
-  newArrivalMsg: {
-    _id: string;
-    conversationId: string;
-    senderId: string;
-    message: string;
-    createdAt: string;
-  };
-  senderTyping: {
-    sender: string;
-    receiverId: string;
-    typing: boolean;
-    conversationId: string;
-  };
-} = {
+const initialChatState: ChatState = {
   socket: null,
   chats: [],
   currentChat: null,
@@ -96,6 +100,7 @@ const initialChatState: {
     typing: false,
     conversationId: "",
   },
+  scrollBottom: 0,
 };
 
 const chatSlice = createSlice({
@@ -124,10 +129,21 @@ const chatSlice = createSlice({
 
     newArrivalMsg: (state, action) => {
       state.newArrivalMsg = action.payload;
+
+      // update scrollBottom property by adding 1  to it if the newArrivalMsg is from current user so that the chatbox automatically scroll to bottom
+      if (action.payload.currentUserId === action.payload.senderId) {
+        state.scrollBottom++;
+      }
+
+      // if the newArrivalMsg is from a friend, we just want to notify current user of the new message and let them scroll to bottom manually by not updating the scrollBottom
     },
 
     senderTyping: (state, action) => {
       state.senderTyping = action.payload;
+    },
+
+    manualScrollBottom: (state) => {
+      state.scrollBottom++;
     },
   },
 
@@ -138,6 +154,9 @@ const chatSlice = createSlice({
 
     builder.addCase(getCurrentConversation.fulfilled, (state, action) => {
       state.currentChat = action.payload.conversation;
+
+      // update scrollBottom so that chat box auto scroll every time currentChat is updated (user opens another chat)
+      state.scrollBottom++;
     });
   },
 });

@@ -13,6 +13,10 @@ export const SidebarChat: React.FC<{
     (state: RootState) => state.chatReducers.onlineFriends
   );
 
+  const senderTyping = useSelector(
+    (state: RootState) => state.chatReducers.senderTyping
+  );
+
   const getFriend = () => {
     return props.conversation.members.find(
       (member) => member.userId !== user.userId
@@ -49,10 +53,22 @@ export const SidebarChat: React.FC<{
           <h6>{getFriend()?.username}</h6>
           <span>{moment(props.conversation.updatedAt).calendar()}</span>
         </div>
-        <div className="recent_msg">
-          {props.conversation.latestMsg ||
-            "You have not sent any message to this person. Let reach out to them now"}
-        </div>
+        {!(
+          senderTyping.typing &&
+          senderTyping.conversationId === props.conversation._id
+        ) && (
+          <div className="recent_msg">
+            {props.conversation.latestMsg ||
+              "You have not sent any message to this person. Let reach out to them now"}
+          </div>
+        )}
+
+        {senderTyping.typing &&
+          senderTyping.conversationId === props.conversation._id && (
+            <div className="typing_indicator">
+              {senderTyping.sender} is typing ...
+            </div>
+          )}
       </div>
     </SidebarChatStyles>
   );

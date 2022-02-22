@@ -1,6 +1,11 @@
 @import "~antd/dist/antd.dark.css";
 
-body {
+* {
+  scroll-behavior: smooth;
+}
+
+body,
+html {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
@@ -123,4 +128,22 @@ input:focus {
 
 .emoji-mart-dark .emoji-mart-category-label span {
   background-color: transparent !important;
+}
+
+/* buttons */
+.btn {
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 16px;
+  min-width: 100px;
+  text-align: center;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.primary_btn {
+  background-color: #005c4b;
+  color: #e9edef !important;
 }

@@ -13,19 +13,22 @@ import {
 import { ChatStyles } from "../styles";
 import "emoji-mart/css/emoji-mart.css";
 import { Picker } from "emoji-mart";
+import { chatActions } from "../redux/chat-slice";
+import { openInfoNotification } from "../utils/antdNoti";
 
 export function Chat() {
   const dispatch = useAppDispatch();
 
   const { conversationId } = useParams<string>();
 
-  const scrollRef = useRef() as React.MutableRefObject<HTMLDivElement>;
+  // const latesMsgRef = useRef() as React.MutableRefObject<HTMLDivElement>;
   const msgInput = useRef() as RefObject<HTMLInputElement>;
+  const chatBodyRef = useRef() as React.MutableRefObject<HTMLDivElement>;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMsg, setNewMsg] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  // const [newArrivalMsg, setNewArrivalMsg] = useState<Message | null>(null);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
 
   const user = useSelector((state: RootState) => state.authReducers.user);
   const socket = useSelector((state: RootState) => state.chatReducers.socket);
@@ -37,6 +40,9 @@ export function Chat() {
   );
   const newArrivalMsg = useSelector(
     (state: RootState) => state.chatReducers.newArrivalMsg
+  );
+  const scrollBottom = useSelector(
+    (state: RootState) => state.chatReducers.scrollBottom
   );
   const senderTyping = useSelector(
     (state: RootState) => state.chatReducers.senderTyping
@@ -55,8 +61,25 @@ export function Chat() {
   }, [dispatch, conversationId]);
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    // latesMsgRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      manualScroll(chatBodyRef.current.scrollHeight); // scroll all the way down to bottom of the viewport height
+    }, 200);
+  }, [scrollBottom]);
+
+  useEffect(() => {
+    const { scrollTop, clientHeight, scrollHeight } = chatBodyRef.current;
+    if (newArrivalMsg.senderId !== "") {
+      if (
+        newArrivalMsg.senderId !== "" &&
+        scrollTop + clientHeight > scrollHeight - 50
+      ) {
+        dispatch(chatActions.manualScrollBottom());
+      } else {
+        openInfoNotification("You've got a new messasge");
+      }
+    }
+  }, [newArrivalMsg, dispatch]);
 
   useEffect(() => {
     // if new msg arrives and belongs to the current conversation update the chat history - messages
@@ -68,7 +91,7 @@ export function Chat() {
     ) {
       setMessages((prev) => [...prev, newArrivalMsg]);
     }
-  }, [newArrivalMsg, currentConversation, conversationId]);
+  }, [newArrivalMsg, currentConversation]);
 
   const getFriend = () => {
     return currentConversation?.members.find(
@@ -104,6 +127,20 @@ export function Chat() {
     msgInput.current!.selectionEnd = emoji_length + ending_point;
   };
 
+  const manualScroll = (value: number) => {
+    chatBodyRef.current.scrollTop = value;
+  };
+
+  const handleScrollBottomButton = () => {
+    const { scrollTop, clientHeight, scrollHeight } = chatBodyRef.current;
+
+    if (scrollTop + clientHeight < scrollHeight - 50) {
+      setShowScrollBottom(true);
+    } else {
+      setShowScrollBottom(false);
+    }
+  };
+
   const handleSendMsg = async () => {
     const new_msg = {
       conversationId: conversationId || "",
@@ -130,6 +167,7 @@ export function Chat() {
     setMessages([...messages, result.new_msg]);
     setNewMsg("");
     setShowEmojiPicker(false);
+    manualScroll(chatBodyRef.current.scrollHeight);
   };
 
   const sendMsgOnEnter = (event: any) => {
@@ -164,6 +202,13 @@ export function Chat() {
     if (newMsg.length > 0 && event.code === "Enter") {
       handleSendMsg();
       setNewMsg("");
+      const typing_sender = {
+        sender: user.username,
+        receiverId: receiver?.userId,
+        typing: false,
+        conversationId,
+      };
+      socket?.emit("meTyping", typing_sender);
 
       return;
     }
@@ -172,6 +217,8 @@ export function Chat() {
   return (
     <ChatStyles>
       <div className="chat--main">
+        <div className="cover_img"></div>
+
         <header>
           <div className="avatar">
             <div className="avatar--main">
@@ -199,9 +246,13 @@ export function Chat() {
           </div>
         </header>
 
-        <div className="chat_body">
-          <div className="cover_img"></div>
+        <div
+          className="chat_body"
+          onScroll={handleScrollBottomButton}
+          ref={chatBodyRef}
+        >
           <div className="empty_space"></div>
+
           <div className="chat_messages position-relative">
             {messages &&
               messages.map((msg) => (
@@ -210,7 +261,7 @@ export function Chat() {
                     msg.senderId === user.userId ? "me" : ""
                   }`}
                   key={msg._id}
-                  ref={scrollRef}
+                  // ref={latesMsgRef}
                 >
                   <span className="msg_content">{msg.message}</span>
                   <span className="msg_timestamp">
@@ -230,6 +281,17 @@ export function Chat() {
                 </div>
               )}
           </div>
+
+          {showScrollBottom && (
+            <div
+              className="scroll_bottom"
+              onClick={() => {
+                dispatch(chatActions.manualScrollBottom());
+              }}
+            >
+              <i className="bx bx-chevron-down"></i>
+            </div>
+          )}
         </div>
 
         <footer>

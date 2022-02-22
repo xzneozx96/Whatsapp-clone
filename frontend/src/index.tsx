@@ -5,9 +5,11 @@ import App from "./App";
 import { BrowserRouter as Router } from "react-router-dom";
 import { store } from "./app/store";
 import { Provider } from "react-redux";
-import { injectStore } from "./api";
+import { injectStoreToAxiox } from "./api";
+import { injectStoreToUtils } from "./utils/antdNoti";
 
-injectStore(store);
+injectStoreToAxiox(store);
+injectStoreToUtils(store);
 
 ReactDOM.render(
   <React.StrictMode>

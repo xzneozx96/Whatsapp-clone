@@ -14,7 +14,7 @@ const axiosInstance = axios.create({
 // one way to implement redux store outside of a react component => followed instruction on official Redux docs
 let store: any;
 
-export const injectStore = (_store: any) => {
+export const injectStoreToAxiox = (_store: any) => {
   store = _store;
 };
 

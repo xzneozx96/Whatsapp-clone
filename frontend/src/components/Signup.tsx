@@ -3,7 +3,7 @@ import { Button, Form, Input } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../app/hooks";
 import { register } from "../redux/auth-slice";
-import { openErrNotification } from "../utils/errorNoti";
+import { openErrNotification } from "../utils/antdNoti";
 
 export const SignupPage = () => {
   const navigate = useNavigate();

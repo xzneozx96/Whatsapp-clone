@@ -11,7 +11,21 @@ export const ChatStyles = styled.div`
     background: #0b141a;
     position: relative;
 
+    .cover_img {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      left: 0;
+      top: 0;
+      background-image: url(${whatsapBg});
+      background-repeat: repeat;
+      background-size: 412.5px 749.25px;
+      opacity: 0.06;
+      pointer-events: none;
+    }
+
     header {
+      z-index: 2;
       padding: 0 1rem;
       background: #202c33;
       width: 100%;
@@ -68,19 +82,25 @@ export const ChatStyles = styled.div`
 
       .empty_space {
         flex: 1 1 auto;
+        min-height: 100px;
       }
 
-      .cover_img {
-        content: "";
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        left: 0;
-        top: 0;
-        background-image: url(${whatsapBg});
-        background-repeat: repeat;
-        background-size: 412.5px 749.25px;
-        opacity: 0.06;
+      .scroll_bottom {
+        width: 40px;
+        height: 40px;
+        position: sticky;
+        margin-right: 14px;
+        border-radius: 50%;
+        align-self: flex-end;
+        bottom: 24px;
+        line-height: 58px;
+        text-align: center;
+        background-color: #202c33;
+
+        i {
+          font-size: 2rem;
+          color: #798287;
+        }
       }
 
       .chat_messages {
@@ -115,8 +135,8 @@ export const ChatStyles = styled.div`
 
       .typing_indicator {
         background-color: #202c33;
-        width: 40px;
-        height: 26px;
+        width: 48px;
+        height: 28px;
         margin-bottom: 12px;
         display: block;
         border-radius: 30% / 50%;
@@ -162,6 +182,7 @@ export const ChatStyles = styled.div`
     }
 
     footer {
+      z-index: 2;
       min-height: 60px;
       background: #202c33;
       display: flex;
