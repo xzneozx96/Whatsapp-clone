@@ -1,19 +1,13 @@
 const Conversation = require("../models/conversation");
-const User = require("../models/user");
+const mongoose = require("mongoose");
 
 // create new conversation
 const newConversation = async (req, res) => {
   try {
     const { senderId, receiverId } = req.body;
 
-    const sender = await User.findOne({ _id: senderId }, "_id, username");
-    const receiver = await User.findOne({ _id: receiverId }, "_id, username");
-
     const new_conversation = new Conversation({
-      members: [
-        { username: sender.username, userId: sender._id.toString() },
-        { username: receiver.username, userId: receiver._id.toString() },
-      ],
+      members: [senderId, receiverId],
     });
 
     await new_conversation.save();
@@ -36,9 +30,8 @@ const myConversations = async (req, res) => {
     const { userId } = req.params;
 
     const my_conversations = await Conversation.find({
-      // "members._id": { $in: [userId] },
-      members: { $elemMatch: { userId: userId } },
-    });
+      members: { $in: userId },
+    }).populate("members", "username");
 
     return res.status(200).json({
       my_conversations,
@@ -55,7 +48,10 @@ const myConversations = async (req, res) => {
 const getSingleConversation = async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const conversation = await Conversation.findById(conversationId);
+    const conversation = await Conversation.findById(conversationId).populate(
+      "members",
+      "username"
+    );
 
     return res.status(200).json({
       conversation,

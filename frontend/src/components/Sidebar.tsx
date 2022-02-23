@@ -8,15 +8,19 @@ import { logout } from "../redux/auth-slice";
 
 export function Sidebar() {
   const dispatch = useAppDispatch();
+
   const conversations = useSelector(
     (state: RootState) => state.chatReducers.chats
   );
-
-  const user = useSelector((state: RootState) => state.authReducers.user)  
+  const user = useSelector((state: RootState) => state.authReducers.user);
+  const socket = useSelector((state: RootState) => state.chatReducers.socket);
 
   const onLogout = () => {
-    dispatch(logout())
-  }
+    dispatch(logout());
+
+    // notify socket server that a user has disconnected as soon as he/she logs out
+    socket?.disconnect();
+  };
 
   return (
     <SidebarStyles>

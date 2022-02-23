@@ -19,7 +19,7 @@ export const SidebarChat: React.FC<{
 
   const getFriend = () => {
     return props.conversation.members.find(
-      (member) => member.userId !== user.userId
+      (member) => member._id !== user.userId
     );
   };
 
@@ -27,7 +27,7 @@ export const SidebarChat: React.FC<{
     let friend = getFriend();
 
     if (friend) {
-      return online_friends.includes(friend.userId);
+      return online_friends.includes(friend._id);
     }
   };
 

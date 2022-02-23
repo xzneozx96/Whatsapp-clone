@@ -1,14 +1,13 @@
 import api from "../api";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { Conversation } from "../interfaces/conversation";
-import { Message } from "../interfaces/message";
+import { Conversation, Pagination, Message } from "../interfaces";
 import { Socket } from "socket.io-client";
 
 interface ChatState {
   socket: Socket | null;
-  chats: Conversation[];
   currentChat: Conversation | null;
   onlineFriends: string[];
+  chats: Conversation[];
   newArrivalMsg: {
     _id: string;
     conversationId: string;
@@ -24,7 +23,35 @@ interface ChatState {
     conversationId: string;
   };
   scrollBottom: number;
+  pagination: Pagination | null;
 }
+
+// interface ChatState {
+//   socket: Socket | null;
+//   chats: SingleChat[];
+//   currentChat: Conversation | null;
+//   onlineFriends: string[];
+// }
+
+// interface SingleChat {
+//   chat: Conversation;
+//   newArrivalMsg: {
+//     _id: string;
+//     conversationId: string;
+//     senderId: string;
+//     message: string;
+//     createdAt: string;
+//     currentUserId?: string;
+//   };
+//   senderTyping: {
+//     sender: string;
+//     receiverId: string;
+//     typing: boolean;
+//     conversationId: string;
+//   };
+//   scrollBottom: number;
+//   pagination: Pagination | null;
+// }
 
 export const getMyConversations = createAsyncThunk(
   "chats/getMyConversations",
@@ -55,14 +82,23 @@ export const getCurrentConversation = createAsyncThunk(
   }
 );
 
-export const getConversationMessages = createAsyncThunk(
+export const getConversationPaginatedMessages = createAsyncThunk(
   "chats/getConversationMessages",
-  async (conversationId: string, { rejectWithValue }) => {
+  async (
+    payload: { conversationId: string; page: number },
+    { rejectWithValue }
+  ) => {
     try {
-      const res = await api.get<{ conversation_messages: Message[] }>(
-        "message/" + conversationId
-      );
-      return { conversation_messages: res.data.conversation_messages };
+      const res = await api.get<{
+        conversation_messages: Message[];
+        pagination: Pagination;
+      }>("message/" + payload.conversationId, {
+        params: { page: payload.page },
+      });
+
+      const { conversation_messages, pagination } = res.data;
+
+      return { conversation_messages, pagination };
     } catch (err: any) {
       return rejectWithValue(err.response.data.msg);
     }
@@ -101,7 +137,15 @@ const initialChatState: ChatState = {
     conversationId: "",
   },
   scrollBottom: 0,
+  pagination: null,
 };
+
+// const initialChatState: ChatState = {
+//   socket: null,
+//   chats: [],
+//   currentChat: null,
+//   onlineFriends: [],
+// };
 
 const chatSlice = createSlice({
   name: "chats",
@@ -145,6 +189,12 @@ const chatSlice = createSlice({
     manualScrollBottom: (state) => {
       state.scrollBottom++;
     },
+
+    // newArrivalMsg: (state, action) => {},
+
+    // senderTyping: (state, action) => {},
+
+    // manualScrollBottom: (state, action) => {},
   },
 
   extraReducers: (builder) => {
@@ -158,6 +208,13 @@ const chatSlice = createSlice({
       // update scrollBottom so that chat box auto scroll every time currentChat is updated (user opens another chat)
       state.scrollBottom++;
     });
+
+    builder.addCase(
+      getConversationPaginatedMessages.fulfilled,
+      (state, action) => {
+        state.pagination = action.payload.pagination;
+      }
+    );
   },
 });
 

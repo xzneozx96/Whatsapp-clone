@@ -6,7 +6,7 @@ import { useAppDispatch } from "../app/hooks";
 import { RootState } from "../app/store";
 import { Message } from "../interfaces/message";
 import {
-  getConversationMessages,
+  getConversationPaginatedMessages,
   getCurrentConversation,
   sendMsg,
 } from "../redux/chat-slice";
@@ -29,6 +29,8 @@ export function Chat() {
   const [newMsg, setNewMsg] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
+  const [loading, setShowLoading] = useState(false);
+  const [scrollUp, setScrollUp] = useState(0);
 
   const user = useSelector((state: RootState) => state.authReducers.user);
   const socket = useSelector((state: RootState) => state.chatReducers.socket);
@@ -47,25 +49,39 @@ export function Chat() {
   const senderTyping = useSelector(
     (state: RootState) => state.chatReducers.senderTyping
   );
+  const pagination = useSelector(
+    (state: RootState) => state.chatReducers.pagination
+  );
 
   useEffect(() => {
     dispatch(getCurrentConversation(conversationId || ""));
   }, [dispatch, conversationId]);
 
   useEffect(() => {
-    dispatch(getConversationMessages(conversationId || ""))
+    dispatch(
+      getConversationPaginatedMessages({
+        conversationId: conversationId || "",
+        page: 1,
+      })
+    )
       .unwrap()
       .then((result) => {
-        setMessages(result.conversation_messages);
+        setMessages(result.conversation_messages.reverse());
       });
   }, [dispatch, conversationId]);
 
   useEffect(() => {
-    // latesMsgRef.current?.scrollIntoView({ behavior: "smooth" });
     setTimeout(() => {
       manualScroll(chatBodyRef.current.scrollHeight); // scroll all the way down to bottom of the viewport height
     }, 200);
   }, [scrollBottom]);
+
+  useEffect(() => {
+    // this useEffect is to prevent scrollbar stick to the top once user fetch old messages with infinite scroll
+    setTimeout(() => {
+      manualScroll(Math.ceil(chatBodyRef.current.scrollHeight * 0.05)); // scroll all the way down to bottom of the viewport height: ;
+    }, 200);
+  }, [scrollUp]);
 
   useEffect(() => {
     const { scrollTop, clientHeight, scrollHeight } = chatBodyRef.current;
@@ -86,7 +102,7 @@ export function Chat() {
     if (
       newArrivalMsg &&
       currentConversation?.members.some(
-        (mem) => mem.userId === newArrivalMsg.senderId
+        (mem) => mem._id === newArrivalMsg.senderId
       )
     ) {
       setMessages((prev) => [...prev, newArrivalMsg]);
@@ -95,7 +111,7 @@ export function Chat() {
 
   const getFriend = () => {
     return currentConversation?.members.find(
-      (member) => member.userId !== user.userId
+      (member) => member._id !== user.userId
     );
   };
 
@@ -103,7 +119,7 @@ export function Chat() {
     let friend = getFriend();
 
     if (friend) {
-      return online_friends.includes(friend.userId);
+      return online_friends.includes(friend._id);
     }
   };
 
@@ -131,15 +147,49 @@ export function Chat() {
     chatBodyRef.current.scrollTop = value;
   };
 
-  const handleScrollBottomButton = () => {
+  const handleScroll = () => {
     const { scrollTop, clientHeight, scrollHeight } = chatBodyRef.current;
 
+    // show "scroll-to-bottom" button
     if (scrollTop + clientHeight < scrollHeight - 50) {
       setShowScrollBottom(true);
     } else {
       setShowScrollBottom(false);
     }
+
+    // fetch old messages with infinite scroll
+    if (scrollTop === 0 && pagination?.hasNextPage) {
+      console.log("fetching old messages");
+
+      setShowLoading(true);
+
+      dispatch(
+        getConversationPaginatedMessages({
+          conversationId: conversationId || "",
+          page: pagination!.nextPage,
+        })
+      )
+        .unwrap()
+        .then((result) => {
+          // hide loading indicator
+          setShowLoading(false);
+
+          // make scrollbar little bit offset from top
+          setScrollUp(scrollUp + 1);
+
+          const old_messages = result.conversation_messages.reverse();
+
+          // update current messages
+          setMessages([...old_messages, ...messages]);
+        });
+    } else {
+      return;
+    }
   };
+
+  // const fetchMessagesOnScroll = () => {
+
+  // }
 
   const handleSendMsg = async () => {
     const new_msg = {
@@ -152,12 +202,12 @@ export function Chat() {
 
     // notify the socket server every time new message sent
     const receiver = currentConversation?.members.find(
-      (mem) => mem.userId !== user.userId
+      (mem) => mem._id !== user.userId
     );
 
     // emit typing event to socket server
 
-    const receiverId = receiver!.userId;
+    const receiverId = receiver!._id;
 
     socket?.emit("sendMsg", {
       ...result.new_msg,
@@ -173,7 +223,7 @@ export function Chat() {
   const sendMsgOnEnter = (event: any) => {
     // emit typing event to socket server
     const receiver = currentConversation?.members.find(
-      (mem) => mem.userId !== user.userId
+      (mem) => mem._id !== user.userId
     );
 
     const msgInput_value = msgInput.current?.value;
@@ -181,7 +231,7 @@ export function Chat() {
     if (msgInput_value!.length > 0) {
       const typing_sender = {
         sender: user.username,
-        receiverId: receiver?.userId,
+        receiverId: receiver?._id,
         typing: true,
         conversationId,
       };
@@ -191,7 +241,7 @@ export function Chat() {
     if (msgInput_value!.length === 0) {
       const typing_sender = {
         sender: user.username,
-        receiverId: receiver?.userId,
+        receiverId: receiver?._id,
         typing: false,
         conversationId,
       };
@@ -204,7 +254,7 @@ export function Chat() {
       setNewMsg("");
       const typing_sender = {
         sender: user.username,
-        receiverId: receiver?.userId,
+        receiverId: receiver?._id,
         typing: false,
         conversationId,
       };
@@ -246,11 +296,21 @@ export function Chat() {
           </div>
         </header>
 
-        <div
-          className="chat_body"
-          onScroll={handleScrollBottomButton}
-          ref={chatBodyRef}
-        >
+        <div className="chat_body" onScroll={handleScroll} ref={chatBodyRef}>
+          {loading && (
+            <i
+              style={{
+                color: "#00a884",
+                position: "absolute",
+                left: "50%",
+                transform: "translateX(-50%)",
+                top: "20px",
+                fontSize: "2rem",
+              }}
+              className="bx bx-loader-alt bx-spin"
+            ></i>
+          )}
+
           <div className="empty_space"></div>
 
           <div className="chat_messages position-relative">

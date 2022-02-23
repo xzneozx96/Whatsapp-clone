@@ -1,7 +1,7 @@
 export interface Conversation {
   _id: string;
   members: {
-    userId: string;
+    _id: string;
     username: string;
   }[];
   createdAt: string;

@@ -18,12 +18,12 @@ const socketServer = (server) => {
 
       if (users.has(userId)) {
         // newly joint user has already joint on other device => add new device by adding new socketId to sockets array, then update the Map object
-        const existing_users = users.get(userId);
-        existing_users.sockets = [...existing_users.sockets, socket.id];
+        const existing_user = users.get(userId);
+        existing_user.sockets = [...existing_user.sockets, socket.id];
 
-        users.set(userId, existing_users);
+        users.set(userId, existing_user);
 
-        current_sockets = [...existing_users.sockets, socket.id];
+        current_sockets = [...existing_user.sockets, socket.id];
 
         userSockets.set(socket.id, userId);
       } else {
@@ -43,8 +43,8 @@ const socketServer = (server) => {
 
       // notify this user's friend that he/she is now online
       for (let i = 0; i < chatters.length; i++) {
-        if (users.has(chatters[i].userId)) {
-          const chatter = users.get(chatters[i].userId);
+        if (users.has(chatters[i]._id.toString())) {
+          const chatter = users.get(chatters[i]._id.toString());
 
           chatter.sockets.forEach((socketId) => {
             io.to(socketId).emit("online", userId);
@@ -121,12 +121,12 @@ const socketServer = (server) => {
           users.set(disconnected_user.userId, disconnected_user);
         } else {
           // this user HAS disconnected on all devices
-          const chatters = await getChatters(disconnected_user.userId);
+          let chatters = await getChatters(disconnected_user.userId); // list of friends that current user has been chatting with
 
           // notify this user's friend that he/she is now offline
           for (let i = 0; i < chatters.length; i++) {
-            if (users.has(chatters[i].userId)) {
-              const chatter = users.get(chatters[i].userId);
+            if (users.has(chatters[i]._id.toString())) {
+              const chatter = users.get(chatters[i]._id.toString());
 
               chatter.sockets.forEach((socketId) => {
                 io.to(socketId).emit("offline", disconnected_user.userId);
@@ -147,11 +147,11 @@ const socketServer = (server) => {
 
 async function getChatters(userId) {
   const my_conversations = await Conversation.find({
-    members: { $elemMatch: { userId: userId } },
-  });
+    members: { $in: userId },
+  }).populate("members", "username");
 
   return my_conversations.map((conversation) =>
-    conversation.members.find((member) => member.userId !== userId)
+    conversation.members.find((member) => member._id.toString() !== userId)
   );
 }
 

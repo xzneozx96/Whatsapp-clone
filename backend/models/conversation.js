@@ -1,18 +1,17 @@
 const mongoose = require("mongoose");
+const User = require("./user");
 
-var MemberSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-  },
-});
+const Schema = mongoose.Schema;
 
-const ConversationSchema = new mongoose.Schema(
+const ConversationSchema = new Schema(
   {
-    members: {
-      type: Array,
-      default: [],
-    },
+    members: [
+      {
+        type: String,
+        required: true,
+        ref: User,
+      },
+    ],
     latestMsg: {
       type: String,
       default: "",

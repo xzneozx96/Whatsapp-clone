@@ -53,7 +53,47 @@ const conversationMessages = async (req, res) => {
   }
 };
 
+const conversationPaginatedMessages = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const page = +req.query.page || 1; // if the query page does not exist, user will be redirected to page 1
+
+    const messages_per_page = 30; // number of messasges returned on pagination
+
+    // find all messages that that belong to a conversation
+    // number of messages that belong to a conversation
+    const total_messages = await Message.find({
+      conversationId,
+    }).countDocuments();
+
+    const paginated_messages = await Message.find({
+      conversationId,
+    })
+      .sort({ $natural: -1 }) // fetch latest messages
+      .skip((page - 1) * messages_per_page) // ignore items from previous page
+      .limit(messages_per_page); // ignore items from next page
+
+    return res.status(200).json({
+      conversation_messages: paginated_messages,
+      pagination: {
+        currentPage: page,
+        hasNextPage: messages_per_page * page < total_messages,
+        hasPrevpage: page > 1,
+        nextPage: page + 1,
+        prevPage: page - 1,
+        lastPage: Math.ceil(total_messages / messages_per_page),
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      msg: "Internal Server Error. Fetcching paginated messages failed !",
+    });
+  }
+};
+
 module.exports = {
   newMessage,
   conversationMessages,
+  conversationPaginatedMessages,
 };
