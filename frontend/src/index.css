@@ -45,6 +45,7 @@ a:hover {
 input:focus {
   outline: none !important;
   box-shadow: none !important;
+  background-color: inherit;
 }
 
 /* custom scrollbar */
@@ -54,7 +55,8 @@ input:focus {
 }
 
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -89,7 +91,7 @@ input:focus {
   color: rgba(255, 255, 255, 0.85) !important;
 }
 
-.ant-btn {
+.primary_btn {
   background: rgb(0, 128, 105) !important;
   border-color: rgb(0, 128, 105) !important;
 }
@@ -142,4 +144,67 @@ input:focus {
 .primary_btn {
   background-color: #005c4b;
   color: #e9edef !important;
+}
+
+/* antd dropdown */
+.ant-dropdown-menu {
+  background-color: transparent;
+  box-shadow: none;
+  padding-bottom: 10px;
+}
+
+.ant-dropdown-menu-item:hover {
+  background-color: transparent;
+}
+
+/* antd tooltip */
+.ant-tooltip-inner {
+  background-color: #e9edef;
+  color: #0a1014;
+}
+
+/* upload antd */
+.ant-upload.ant-upload-select-picture-card {
+  position: sticky;
+  right: 0;
+  z-index: 10;
+  background-color: #111b21;
+}
+
+.ant-upload-list {
+  white-space: nowrap;
+  overflow: auto;
+}
+
+.ant-upload-picture-card-wrapper {
+  text-align: center;
+  margin-top: auto;
+}
+
+.ant-upload-list-picture-card .ant-upload-list-item-info::before {
+  left: 0;
+}
+
+/* input box */
+.msg_input {
+  display: flex;
+  align-items: center;
+}
+
+.msg_input .input_field {
+  display: flex;
+  flex: 1;
+  padding: 0 1rem;
+  height: 42px;
+}
+
+.msg_input .input_field input,
+.msg_input .input_field input:focus {
+  background: #2a3942;
+  border: none;
+  color: #e9edef;
+}
+
+.msg_input .input_field input::placeholder {
+  color: #8696a0;
 }

@@ -1,20 +1,24 @@
+import { Dropdown, Menu, Tooltip } from "antd";
+import { Picker } from "emoji-mart";
+import "emoji-mart/css/emoji-mart.css";
 import moment from "moment";
-import { RefObject, useEffect, useRef, useState } from "react";
+import { Fragment, RefObject, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useAppDispatch } from "../app/hooks";
 import { RootState } from "../app/store";
+import { ReactComponent as AssetUploadIcon } from "../images/asset-upload.svg";
+import { ReactComponent as FileUploadIcon } from "../images/file-upload.svg";
 import { Message } from "../interfaces/message";
 import {
+  chatActions,
   getConversationPaginatedMessages,
   getCurrentConversation,
   sendMsg,
 } from "../redux/chat-slice";
 import { ChatStyles } from "../styles";
-import "emoji-mart/css/emoji-mart.css";
-import { Picker } from "emoji-mart";
-import { chatActions } from "../redux/chat-slice";
 import { openInfoNotification } from "../utils/antdNoti";
+import { AssetsUpload } from "./AssetsUpload";
 
 export function Chat() {
   const dispatch = useAppDispatch();
@@ -31,6 +35,8 @@ export function Chat() {
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [loading, setShowLoading] = useState(false);
   const [scrollUp, setScrollUp] = useState(0);
+  // const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const user = useSelector((state: RootState) => state.authReducers.user);
   const socket = useSelector((state: RootState) => state.chatReducers.socket);
@@ -187,10 +193,6 @@ export function Chat() {
     }
   };
 
-  // const fetchMessagesOnScroll = () => {
-
-  // }
-
   const handleSendMsg = async () => {
     const new_msg = {
       conversationId: conversationId || "",
@@ -264,6 +266,31 @@ export function Chat() {
     }
   };
 
+  const menu = (
+    <Menu>
+      <Menu.Item key="AssetUploadIcon">
+        <Tooltip placement="right" title="Images and Videos">
+          <AssetUploadIcon
+            onClick={() => {
+              setUploading(true);
+            }}
+          />
+        </Tooltip>
+      </Menu.Item>
+
+      <Menu.Item key="FileUploadIcon">
+        <Tooltip placement="right" title="Documents">
+          <FileUploadIcon />
+        </Tooltip>
+      </Menu.Item>
+    </Menu>
+  );
+
+  // make dropdown stay opened when click on its item
+  // const handleVisibleChange = (flag: boolean) => {
+  //   setDropdownVisible(flag);
+  // };
+
   return (
     <ChatStyles>
       <div className="chat--main">
@@ -311,92 +338,118 @@ export function Chat() {
             ></i>
           )}
 
-          <div className="empty_space"></div>
+          {!uploading && (
+            <Fragment>
+              <div className="empty_space"></div>
 
-          <div className="chat_messages position-relative">
-            {messages &&
-              messages.map((msg) => (
+              <div className="chat_messages position-relative">
+                {messages &&
+                  messages.map((msg) => (
+                    <div
+                      className={`chat_msg ${
+                        msg.senderId === user.userId ? "me" : ""
+                      }`}
+                      key={msg._id}
+                      // ref={latesMsgRef}
+                    >
+                      <span className="msg_content">{msg.message}</span>
+                      <span className="msg_timestamp">
+                        {moment(msg.createdAt).calendar()}
+                      </span>
+                    </div>
+                  ))}
+
+                {senderTyping.typing &&
+                  senderTyping.conversationId === conversationId && (
+                    <div className="typing_indicator">
+                      <div className="typing_indicator--bubbles">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                      </div>
+                    </div>
+                  )}
+              </div>
+
+              {showScrollBottom && (
                 <div
-                  className={`chat_msg ${
-                    msg.senderId === user.userId ? "me" : ""
-                  }`}
-                  key={msg._id}
-                  // ref={latesMsgRef}
+                  className="scroll_bottom"
+                  onClick={() => {
+                    dispatch(chatActions.manualScrollBottom());
+                  }}
                 >
-                  <span className="msg_content">{msg.message}</span>
-                  <span className="msg_timestamp">
-                    {moment(msg.createdAt).calendar()}
-                  </span>
-                </div>
-              ))}
-
-            {senderTyping.typing &&
-              senderTyping.conversationId === conversationId && (
-                <div className="typing_indicator">
-                  <div className="typing_indicator--bubbles">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
+                  <i className="bx bx-chevron-down"></i>
                 </div>
               )}
-          </div>
+            </Fragment>
+          )}
 
-          {showScrollBottom && (
-            <div
-              className="scroll_bottom"
-              onClick={() => {
-                dispatch(chatActions.manualScrollBottom());
-              }}
-            >
-              <i className="bx bx-chevron-down"></i>
-            </div>
+          {uploading && (
+            <Fragment>
+              <i
+                className="bx bx-x close_upload"
+                onClick={() => {
+                  setUploading(false);
+                }}
+              ></i>
+              <AssetsUpload currentConversation={currentConversation} />
+            </Fragment>
           )}
         </div>
 
-        <footer>
-          <div className="utils">
-            <i
-              className="bx bx-smile"
-              onClick={() => {
-                setShowEmojiPicker(!showEmojiPicker);
-              }}
-            ></i>
-            <i className="bx bx-link-alt"></i>
-          </div>
-
-          {showEmojiPicker && (
-            <Picker
-              theme="dark"
-              title="Pick your emoji…"
-              emoji="point_up"
-              style={{
-                position: "absolute",
-                bottom: "64px",
-                right: "0",
-                width: "100%",
-              }}
-              onSelect={selectEmoji}
-            />
-          )}
-
-          <div className="msg_input">
-            <div className="input_field">
-              <input
-                ref={msgInput}
-                type="text"
-                placeholder="Enter your message"
-                className="form-control"
-                onChange={(event: any) => {
-                  setNewMsg(event.target.value);
+        {!uploading && (
+          <footer>
+            <div className="utils">
+              <i
+                className="bx bx-smile"
+                onClick={() => {
+                  setShowEmojiPicker(!showEmojiPicker);
                 }}
-                onKeyUp={sendMsgOnEnter}
-                value={newMsg}
-              />
+              ></i>
+              <Dropdown
+                // onVisibleChange={handleVisibleChange}
+                // visible={dropdownVisible}
+                overlay={menu}
+                trigger={["click"]}
+                placement="topCenter"
+              >
+                <i className="bx bx-link-alt"></i>
+              </Dropdown>
             </div>
-            <i className="bx bx-send" onClick={handleSendMsg}></i>
-          </div>
-        </footer>
+
+            {showEmojiPicker && (
+              <Picker
+                theme="dark"
+                title="Pick your emoji…"
+                emoji="point_up"
+                style={{
+                  position: "absolute",
+                  bottom: "64px",
+                  right: "0",
+                  width: "100%",
+                }}
+                onSelect={selectEmoji}
+              />
+            )}
+
+            <div className="msg_input">
+              <div className="input_field">
+                <input
+                  ref={msgInput}
+                  type="text"
+                  placeholder="Enter your message"
+                  className="form-control"
+                  onChange={(event: any) => {
+                    setNewMsg(event.target.value);
+                  }}
+                  onKeyUp={sendMsgOnEnter}
+                  value={newMsg}
+                />
+              </div>
+              <i className="bx bx-send" onClick={handleSendMsg}></i>
+            </div>
+          </footer>
+        )}
       </div>
     </ChatStyles>
   );

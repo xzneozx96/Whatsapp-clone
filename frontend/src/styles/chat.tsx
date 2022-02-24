@@ -3,6 +3,7 @@ import whatsapBg from "../images/whatsap-bg.png";
 
 export const ChatStyles = styled.div`
   flex: 0 0 70%;
+  overflow: hidden; // prevent child items over-expand its parent
 
   .chat--main {
     display: flex;
@@ -79,6 +80,7 @@ export const ChatStyles = styled.div`
       overflow-y: auto;
       display: flex;
       flex-direction: column;
+      border-left: 1px solid rgba(233, 237, 239, 0.12);
 
       .empty_space {
         flex: 1 1 auto;
@@ -179,6 +181,14 @@ export const ChatStyles = styled.div`
           }
         }
       }
+
+      .close_upload {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        font-size: 2rem;
+        z-index: 10;
+      }
     }
 
     footer {
@@ -187,7 +197,7 @@ export const ChatStyles = styled.div`
       background: #202c33;
       display: flex;
       width: 100%;
-      padding: 0.75rem 1rem;
+      padding: 0.75rem;
 
       i {
         width: 40px;
@@ -195,6 +205,12 @@ export const ChatStyles = styled.div`
         line-height: 40px;
         cursor: pointer;
         color: #8696a0;
+        text-align: center;
+        border-radius: 50%;
+
+        &:hover {
+          background-color: hsla(0, 0%, 100%, 0.1);
+        }
       }
 
       .utils {
@@ -203,27 +219,7 @@ export const ChatStyles = styled.div`
       }
 
       .msg_input {
-        display: flex;
         flex: 1;
-
-        i {
-          text-align: right;
-        }
-
-        .input_field {
-          display: flex;
-          flex: 1;
-
-          input {
-            background: #2a3942;
-            border: none;
-            color: #e9edef;
-          }
-
-          input::placeholder {
-            color: #8696a0;
-          }
-        }
       }
     }
   }

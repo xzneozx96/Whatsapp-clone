@@ -34,6 +34,9 @@ app.use(express.json());
 // middleware for cookies
 app.use(cookieParser());
 
+// set "uploads" as static folder that contains the static files we want to serve the client
+app.use("/uploads", express.static(__dirname + "/uploads"));
+
 // routes registration
 app.use("/api/auth", authRoutes);
 

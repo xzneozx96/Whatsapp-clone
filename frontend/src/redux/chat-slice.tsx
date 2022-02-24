@@ -2,7 +2,6 @@ import api from "../api";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { Conversation, Pagination, Message } from "../interfaces";
 import { Socket } from "socket.io-client";
-
 interface ChatState {
   socket: Socket | null;
   currentChat: Conversation | null;
@@ -112,6 +111,23 @@ export const sendMsg = createAsyncThunk(
       const res = await api.post<{ new_msg: Message }>("message", new_msg);
 
       return { new_msg: res.data.new_msg };
+    } catch (err: any) {
+      return rejectWithValue(err.response.data.msg);
+    }
+  }
+);
+
+export const sendFiles = createAsyncThunk(
+  "chats/uploadFiles",
+  async (formData: FormData, { rejectWithValue }) => {
+    try {
+      const res = await api.post("message/files-upload", formData, {
+        onUploadProgress: (progressEvent) => {
+          console.log(progressEvent.loaded / progressEvent.total);
+        },
+      });
+
+      console.log(res.data);
     } catch (err: any) {
       return rejectWithValue(err.response.data.msg);
     }

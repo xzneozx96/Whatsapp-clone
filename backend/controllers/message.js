@@ -92,8 +92,22 @@ const conversationPaginatedMessages = async (req, res) => {
   }
 };
 
+const fileUpload = (req, res) => {
+  if (req.file) {
+    return res.status(200).json({
+      url: req.file.filename,
+    });
+  }
+
+  return res.status(500).json({
+    success: false,
+    msg: "No file selected",
+  });
+};
+
 module.exports = {
   newMessage,
   conversationMessages,
   conversationPaginatedMessages,
+  fileUpload,
 };
