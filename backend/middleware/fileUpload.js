@@ -1,6 +1,4 @@
 const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
 
 // get file extension. Ex: DOMException, png, jpeg...
 const getFileType = (file) => {
@@ -29,52 +27,11 @@ const fileFilter = (req, file, cb) => {
   return cb(new Error("Invalid File!"), false);
 };
 
-exports.filesUpload = (req, res, next) => {
-  const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      const { conversationId } = req.body;
-      const dest = "uploads/conversation";
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/conversation"); // images folder has to be created manually
+  },
+  filename: fileNameGenerator,
+});
 
-      fs.access(dest, (err) => {
-        if (err) {
-          return fs.mkdir(dest, (err) => {
-            cb(err, false);
-          });
-        }
-
-        return cb(null, dest);
-      });
-    },
-    filename: fileNameGenerator,
-  });
-
-  return multer({ storage, fileFilter }).array("files")(
-    req,
-    res,
-    function (err) {
-      console.log(req.files);
-      if (req.fileValidationError) {
-        return res.send(req.fileValidationError);
-      } else if (!req.files.length) {
-        return res.status(400).json({
-          success: false,
-          msg: "No file selected",
-        });
-      } else if (err instanceof multer.MulterError) {
-        return res.status(500).json({
-          success: false,
-          msg: err,
-        });
-      } else if (err) {
-        return res.send(err);
-      }
-
-      const paths = req.files.map((file) => file.path);
-
-      return res.status(200).json({
-        success: true,
-        paths,
-      });
-    }
-  );
-};
+exports.filesUpload = multer({ storage: storage, fileFilter });

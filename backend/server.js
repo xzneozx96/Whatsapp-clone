@@ -8,6 +8,7 @@ const app = express();
 
 const config = require("./config");
 const verifyJWT = require("./middleware/verifyJWT");
+const fileUpload = require("./middleware/fileUpload");
 
 const PORT = config.serverPort;
 
@@ -26,13 +27,16 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // built-in middleware to handle url-encoded data - also called form data so to say
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 
 // built-in middleware to handle json data submitted via the url
 app.use(express.json());
 
 // middleware for cookies
 app.use(cookieParser());
+
+// multer middleware
+app.use(fileUpload.filesUpload.array("files"));
 
 // set "uploads" as static folder that contains the static files we want to serve the client
 app.use("/uploads", express.static(__dirname + "/uploads"));

@@ -7,10 +7,20 @@ const newMessage = async (req, res) => {
     // create new message
     const { conversationId, senderId, message } = req.body;
 
+    console.log(req.files);
+
+    const files =
+      req.files?.map((file) => ({
+        path: file.path,
+        fileType: file.mimetype,
+        fileName: file.filename,
+      })) || [];
+
     const new_msg = new Message({
       conversationId,
       senderId,
       message,
+      files,
     });
 
     await new_msg.save();

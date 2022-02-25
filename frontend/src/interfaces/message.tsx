@@ -3,5 +3,10 @@ export interface Message {
   conversationId: string;
   senderId: string;
   message: string;
+  files?: {
+    path: string;
+    fileType: string;
+    fileName: string;
+  }[];
   createdAt?: string;
 }

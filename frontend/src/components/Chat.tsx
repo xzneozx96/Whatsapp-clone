@@ -1,4 +1,4 @@
-import { Dropdown, Menu, Tooltip } from "antd";
+import { Dropdown, Menu, Tooltip, Image } from "antd";
 import { Picker } from "emoji-mart";
 import "emoji-mart/css/emoji-mart.css";
 import moment from "moment";
@@ -21,9 +21,11 @@ import { openInfoNotification } from "../utils/antdNoti";
 import { AssetsUpload } from "./AssetsUpload";
 
 export function Chat() {
+  const API_URL = "http://localhost:3500/";
+
   const dispatch = useAppDispatch();
 
-  const { conversationId } = useParams<string>();
+  const conversationId = useParams<string>()?.conversationId || "";
 
   // const latesMsgRef = useRef() as React.MutableRefObject<HTMLDivElement>;
   const msgInput = useRef() as RefObject<HTMLInputElement>;
@@ -35,6 +37,7 @@ export function Chat() {
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [loading, setShowLoading] = useState(false);
   const [scrollUp, setScrollUp] = useState(0);
+  const [uploadFileType, setUploadFileType] = useState("");
   // const [dropdownVisible, setDropdownVisible] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -57,6 +60,9 @@ export function Chat() {
   );
   const pagination = useSelector(
     (state: RootState) => state.chatReducers.pagination
+  );
+  const receiver = currentConversation?.members.find(
+    (mem) => mem._id !== user.userId
   );
 
   useEffect(() => {
@@ -203,17 +209,9 @@ export function Chat() {
     const result = await dispatch(sendMsg(new_msg)).unwrap();
 
     // notify the socket server every time new message sent
-    const receiver = currentConversation?.members.find(
-      (mem) => mem._id !== user.userId
-    );
-
-    // emit typing event to socket server
-
-    const receiverId = receiver!._id;
-
     socket?.emit("sendMsg", {
       ...result.new_msg,
-      receiverId,
+      receiverId: receiver!._id,
     });
 
     setMessages([...messages, result.new_msg]);
@@ -273,6 +271,7 @@ export function Chat() {
           <AssetUploadIcon
             onClick={() => {
               setUploading(true);
+              setUploadFileType("image/*, video/*");
             }}
           />
         </Tooltip>
@@ -280,7 +279,12 @@ export function Chat() {
 
       <Menu.Item key="FileUploadIcon">
         <Tooltip placement="right" title="Documents">
-          <FileUploadIcon />
+          <FileUploadIcon
+            onClick={() => {
+              setUploading(true);
+              setUploadFileType(".docx, .doc, .xlxs, .xls, .ppt, .pptx, .pdf");
+            }}
+          />
         </Tooltip>
       </Menu.Item>
     </Menu>
@@ -350,12 +354,44 @@ export function Chat() {
                         msg.senderId === user.userId ? "me" : ""
                       }`}
                       key={msg._id}
-                      // ref={latesMsgRef}
                     >
-                      <span className="msg_content">{msg.message}</span>
-                      <span className="msg_timestamp">
-                        {moment(msg.createdAt).calendar()}
-                      </span>
+                      {msg.files &&
+                        msg.files.length > 0 &&
+                        msg.files.map((file) => (
+                          <div className="chat_files" key={file.fileName}>
+                            {file.fileType.includes("image") && (
+                              <Image
+                                style={{
+                                  borderRadius: 6,
+                                  padding: 3,
+                                  backgroundColor: "#005c4b",
+                                  maxHeight: 400,
+                                }}
+                                width={340}
+                                src={API_URL + file.path}
+                                alt="file"
+                              />
+                            )}
+
+                            {file.fileType.includes("video") && (
+                              <video
+                                controls
+                                width={340}
+                                style={{ maxHeight: 400 }}
+                                src={API_URL + file.path}
+                              ></video>
+                            )}
+                          </div>
+                        ))}
+
+                      {msg.message.length > 0 && (
+                        <div className="chat_text">
+                          <span className="msg_content">{msg.message}</span>
+                          <span className="msg_timestamp">
+                            {moment(msg.createdAt).calendar()}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
 
@@ -392,7 +428,16 @@ export function Chat() {
                   setUploading(false);
                 }}
               ></i>
-              <AssetsUpload currentConversation={currentConversation} />
+              <AssetsUpload
+                onClose={() => {
+                  setUploading(false);
+                }}
+                senderId={user.userId}
+                receiverId={receiver?._id || ""}
+                conversationId={conversationId}
+                uploadFileType={uploadFileType}
+                currentConversation={currentConversation}
+              />
             </Fragment>
           )}
         </div>

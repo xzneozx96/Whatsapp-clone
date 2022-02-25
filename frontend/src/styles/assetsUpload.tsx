@@ -30,6 +30,17 @@ export const AssetsUploadStyles = styled.div`
     padding: 1rem;
     min-height: 0;
 
+    h5 {
+      margin-bottom: auto;
+    }
+
+    video {
+      margin-bottom: auto;
+      margin-top: 2rem;
+      max-height: 100%;
+      min-height: 0;
+    }
+
     img {
       height: 100%;
       max-width: 100%;
@@ -40,7 +51,7 @@ export const AssetsUploadStyles = styled.div`
   }
 
   .msg_input {
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
     width: 600px;
     margin-left: auto;
     margin-right: auto;

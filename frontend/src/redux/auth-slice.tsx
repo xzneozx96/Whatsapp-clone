@@ -16,8 +16,8 @@ const initialAuthState = {
   isLoggedIn: storedData?.token ? true : false,
   token: storedData?.token,
   user: {
-    userId: storedData?.userId,
-    username: storedData?.username,
+    userId: storedData?.userId || "",
+    username: storedData?.username || "",
   },
 };
 

@@ -109,24 +109,43 @@ export const ChatStyles = styled.div`
         padding: 0 10%;
 
         .chat_msg {
-          padding: 6px 8px;
           margin-bottom: 5px;
-          background: #202c33;
-          width: fit-content;
-          font-size: 14px;
-          color: #e9edef;
           border-radius: 4px;
 
           &.me {
-            background: #005c4b;
-            margin-left: auto;
+            width: 100%;
+            text-align: right;
+
+            .chat_text {
+              background: #005c4b;
+              margin-left: auto;
+              display: block;
+            }
           }
 
-          .msg_timestamp {
-            float: right;
-            margin: 7px 0 -5px 10px;
-            color: hsla(0, 0%, 100%, 0.6);
-            font-size: 11px;
+          .chat_text {
+            width: fit-content;
+            border-radius: 4px;
+            padding: 6px 8px;
+            background: #202c33;
+            font-size: 14px;
+            color: #e9edef;
+            position: relative;
+
+            .msg_timestamp {
+              float: right;
+              margin: 7px 0 -5px 10px;
+              color: hsla(0, 0%, 100%, 0.6);
+              font-size: 11px;
+            }
+          }
+
+          .chat_files + .chat_files {
+            margin-top: 5px;
+          }
+
+          .chat_files + .chat_text {
+            margin-top: 5px;
           }
 
           &:last-child {

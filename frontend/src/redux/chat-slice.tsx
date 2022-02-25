@@ -121,13 +121,13 @@ export const sendFiles = createAsyncThunk(
   "chats/uploadFiles",
   async (formData: FormData, { rejectWithValue }) => {
     try {
-      const res = await api.post("message/files-upload", formData, {
+      const res = await api.post<{ new_msg: Message }>("message", formData, {
         onUploadProgress: (progressEvent) => {
           console.log(progressEvent.loaded / progressEvent.total);
         },
       });
 
-      console.log(res.data);
+      return { new_msg: res.data.new_msg };
     } catch (err: any) {
       return rejectWithValue(err.response.data.msg);
     }
