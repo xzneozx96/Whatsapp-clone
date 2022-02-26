@@ -47,13 +47,14 @@ export function useSocket(currentUserId: string, dispatch: any) {
 
         socket.on(
           "receiveMsg",
-          ({ _id, conversationId, senderId, message, createdAt }) => {
+          ({ _id, conversationId, senderId, message, files, createdAt }) => {
             dispatch(
               chatActions.newArrivalMsg({
                 _id,
                 conversationId,
                 senderId,
                 message,
+                files,
                 createdAt,
                 currentUserId,
               })

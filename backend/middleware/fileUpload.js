@@ -15,7 +15,10 @@ const fileNameGenerator = (req, file, cb) => {
 const fileFilter = (req, file, cb) => {
   const file_type = getFileType(file);
 
-  const allowed_types = /jpeg|jpg|png|mp4|mov|gif|docx|pdf|xls|doc|ppt|pptx/;
+  console.log(file_type);
+
+  const allowed_types =
+    /jpeg|jpg|png|mp4|mov|gif|vnd.openxmlformats-officedocument.wordprocessingml.document|vnd.openxmlformats-officedocument.presentationml.presentation|vnd.ms-excel|pdf|vnd.oasis.opendocument.text/;
 
   const passed = allowed_types.test(file_type);
 

@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { useAppDispatch } from "../app/hooks";
 import { RootState } from "../app/store";
 import { ReactComponent as EmptyUploadIcon } from "../images/empty-upload.svg";
-import { Conversation } from "../interfaces";
+import { Conversation, Message } from "../interfaces";
 import { sendFiles } from "../redux/chat-slice";
 import { AssetsUploadStyles } from "../styles";
 
@@ -15,6 +15,7 @@ export const AssetsUpload: React.FC<{
   senderId: string;
   receiverId: string;
   onClose: () => void;
+  fileSent: (new_msg: Message) => void;
 }> = (props) => {
   const dispatch = useAppDispatch();
   const socket = useSelector((state: RootState) => state.chatReducers.socket);
@@ -191,7 +192,7 @@ export const AssetsUpload: React.FC<{
     setSendingFiles(true);
     const result = await dispatch(sendFiles(formData)).unwrap();
 
-    // notify the socket server every time new message sent
+    // notify the socket server when files get sent
     socket?.emit("sendMsg", {
       ...result.new_msg,
       receiverId: props.receiverId,
@@ -202,6 +203,9 @@ export const AssetsUpload: React.FC<{
 
     // close the upload component by calling a method on its parent that will set showUploadComponent to false
     props.onClose();
+
+    // update front-end messages
+    props.fileSent(result.new_msg);
   };
 
   return (

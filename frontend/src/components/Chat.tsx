@@ -9,6 +9,7 @@ import { useAppDispatch } from "../app/hooks";
 import { RootState } from "../app/store";
 import { ReactComponent as AssetUploadIcon } from "../images/asset-upload.svg";
 import { ReactComponent as FileUploadIcon } from "../images/file-upload.svg";
+import { ReactComponent as EmptyUploadIcon } from "../images/empty-upload.svg";
 import { Message } from "../interfaces/message";
 import {
   chatActions,
@@ -264,6 +265,16 @@ export function Chat() {
     }
   };
 
+  // this function gets executed after users send files successfully from AssetUpload component
+  const updateMessages = (new_msg: Message) => {
+    setMessages([...messages, new_msg]);
+
+    // wait for UI to update then scroll to bottom once users finish uploading then get redirect to chat messages
+    setTimeout(() => {
+      manualScroll(chatBodyRef.current.scrollHeight);
+    }, 300);
+  };
+
   const menu = (
     <Menu>
       <Menu.Item key="AssetUploadIcon">
@@ -289,6 +300,18 @@ export function Chat() {
       </Menu.Item>
     </Menu>
   );
+
+  // this function hepls remove Date.now() value from filename created by backend
+  const getFileNameForUI = (filename: string) => {
+    // convert string into array
+    const splitted_filename = filename.split("-");
+
+    // remove the first ele - the Date.now() value from this array
+    splitted_filename.shift();
+
+    // convert array back to string
+    return splitted_filename.join("-");
+  };
 
   // make dropdown stay opened when click on its item
   // const handleVisibleChange = (flag: boolean) => {
@@ -355,34 +378,69 @@ export function Chat() {
                       }`}
                       key={msg._id}
                     >
-                      {msg.files &&
-                        msg.files.length > 0 &&
-                        msg.files.map((file) => (
-                          <div className="chat_files" key={file.fileName}>
-                            {file.fileType.includes("image") && (
-                              <Image
-                                style={{
-                                  borderRadius: 6,
-                                  padding: 3,
-                                  backgroundColor: "#005c4b",
-                                  maxHeight: 400,
-                                }}
-                                width={340}
-                                src={API_URL + file.path}
-                                alt="file"
-                              />
-                            )}
+                      {msg.files && msg.files.length > 0 && (
+                        <div className="chat_files">
+                          <Image.PreviewGroup>
+                            {msg.files.map((file) => (
+                              <Fragment key={file.fileName}>
+                                {/* UI for viewing images */}
+                                {file.fileType.includes("image") && (
+                                  <Image
+                                    style={{
+                                      borderRadius: 6,
+                                      padding: 3,
+                                      backgroundColor: "#005c4b",
+                                      height: 140,
+                                      width: 140,
+                                      objectFit: "cover",
+                                    }}
+                                    src={API_URL + file.path}
+                                    alt="file"
+                                  />
+                                )}
 
-                            {file.fileType.includes("video") && (
-                              <video
-                                controls
-                                width={340}
-                                style={{ maxHeight: 400 }}
-                                src={API_URL + file.path}
-                              ></video>
-                            )}
-                          </div>
-                        ))}
+                                {/* UI for viewing videos */}
+                                {file.fileType.includes("video") && (
+                                  <video
+                                    controls
+                                    style={{
+                                      borderRadius: 6,
+                                      maxHeight: 400,
+                                      width: 300,
+                                    }}
+                                    src={API_URL + file.path}
+                                  ></video>
+                                )}
+
+                                {/* UI for downloading files (no preview) */}
+                                {file.fileType.includes("application") && (
+                                  <div className="document_holder">
+                                    <div className="chat_text">
+                                      <EmptyUploadIcon
+                                        style={{
+                                          marginRight: 10,
+                                          width: 20,
+                                          height: "auto",
+                                        }}
+                                      />
+                                      <span className="msg_content">
+                                        <a href={API_URL + file.path}>
+                                          {getFileNameForUI(file.fileName)}
+                                        </a>
+                                      </span>
+                                      <span className="msg_timestamp">
+                                        {moment(msg.createdAt).calendar()}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                              </Fragment>
+                            ))}
+                          </Image.PreviewGroup>
+                        </div>
+
+                        // download documents
+                      )}
 
                       {msg.message.length > 0 && (
                         <div className="chat_text">
@@ -426,11 +484,17 @@ export function Chat() {
                 className="bx bx-x close_upload"
                 onClick={() => {
                   setUploading(false);
+                  setTimeout(() => {
+                    manualScroll(chatBodyRef.current.scrollHeight);
+                  }, 300);
                 }}
               ></i>
               <AssetsUpload
                 onClose={() => {
                   setUploading(false);
+                }}
+                fileSent={(new_msg: Message) => {
+                  updateMessages(new_msg);
                 }}
                 senderId={user.userId}
                 receiverId={receiver?._id || ""}

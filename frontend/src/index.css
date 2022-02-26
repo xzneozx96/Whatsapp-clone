@@ -186,6 +186,10 @@ input:focus {
 .ant-upload-list-picture-card .ant-upload-list-item-info::before {
   left: 0;
 }
+/* 
+.ant-image {
+  flex-basis: calc(100% / 3);
+} */
 
 /* input box */
 .msg_input {

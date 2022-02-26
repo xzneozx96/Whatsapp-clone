@@ -12,6 +12,11 @@ interface ChatState {
     conversationId: string;
     senderId: string;
     message: string;
+    files: {
+      path: string;
+      fileType: string;
+      fileName: string;
+    }[];
     createdAt: string;
     currentUserId?: string;
   };
@@ -144,6 +149,7 @@ const initialChatState: ChatState = {
     conversationId: "",
     senderId: "",
     message: "",
+    files: [],
     createdAt: "",
   },
   senderTyping: {
@@ -190,7 +196,7 @@ const chatSlice = createSlice({
     newArrivalMsg: (state, action) => {
       state.newArrivalMsg = action.payload;
 
-      // update scrollBottom property by adding 1  to it if the newArrivalMsg is from current user so that the chatbox automatically scroll to bottom
+      // update scrollBottom property by adding 1 to it if the newArrivalMsg is from current user so that the chatbox automatically scroll to bottom
       if (action.payload.currentUserId === action.payload.senderId) {
         state.scrollBottom++;
       }

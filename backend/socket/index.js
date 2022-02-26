@@ -68,6 +68,7 @@ const socketServer = (server) => {
         senderId,
         receiverId,
         message,
+        files,
         createdAt,
       }) => {
         const friend = users.get(receiverId);
@@ -79,6 +80,7 @@ const socketServer = (server) => {
             senderId,
             receiverId,
             message,
+            files,
             createdAt,
           });
         });

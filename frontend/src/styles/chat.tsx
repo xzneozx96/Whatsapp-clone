@@ -121,6 +121,11 @@ export const ChatStyles = styled.div`
               margin-left: auto;
               display: block;
             }
+
+            .chat_files {
+              margin-left: auto;
+              justify-content: flex-end;
+            }
           }
 
           .chat_text {
@@ -140,12 +145,27 @@ export const ChatStyles = styled.div`
             }
           }
 
+          .chat_files {
+            max-width: 430px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+
+            .chat_text + .chat_text {
+              margin-top: 5px;
+            }
+          }
+
           .chat_files + .chat_files {
             margin-top: 5px;
           }
 
           .chat_files + .chat_text {
             margin-top: 5px;
+          }
+
+          .document_holder {
+            width: 100%;
           }
 
           &:last-child {
