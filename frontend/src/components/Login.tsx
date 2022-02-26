@@ -74,7 +74,7 @@ export const LoginPage = () => {
             type="button"
             className="btn register-trigger"
           >
-            Or <span>register now!</span>
+            Or register now!
           </button>
         </Form.Item>
       </Form>

@@ -183,8 +183,6 @@ export const AssetsUpload: React.FC<{
     formData.append("senderId", props.senderId as string | Blob);
     formData.append("message", newMsg);
 
-    console.log(uploadState.fileList);
-
     for (let i = 0; i < uploadState.fileList.length; i++) {
       formData.append("files", uploadState.fileList[i]!);
     }

@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-
 import { io } from "socket.io-client";
 import { chatActions, getMyConversations } from "../redux/chat-slice";
 
@@ -61,6 +60,10 @@ export function useSocket(currentUserId: string, dispatch: any) {
             );
           }
         );
+
+        socket.on("conversationCreated", ({ newConversation }) => {
+          dispatch(chatActions.newConversation(newConversation));
+        });
       });
   }, [currentUserId, dispatch]);
 }

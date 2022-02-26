@@ -62,7 +62,7 @@ const socketServer = (server) => {
     // handle when user is sending and receiving messages
     socket.on(
       "sendMsg",
-      async ({
+      ({
         _id,
         conversationId,
         senderId,
@@ -96,6 +96,25 @@ const socketServer = (server) => {
           io.to(socketId).emit("friendTyping", typing_sender);
         });
       }
+    });
+
+    // handle when new conversation is created
+    socket.on("newConversation", async (newConversation) => {
+      const [senderId, receiverId] = newConversation.members;
+
+      const new_conversation = await Conversation.findOne({
+        members: [senderId, receiverId],
+      }).populate("members", "username");
+
+      [senderId, receiverId].forEach((id) => {
+        const member = users.get(id);
+
+        member?.sockets.forEach((socketId) => {
+          io.to(socketId).emit("conversationCreated", {
+            newConversation: new_conversation,
+          });
+        });
+      });
     });
 
     // handle when a user leaves

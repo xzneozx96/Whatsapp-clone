@@ -73,7 +73,7 @@ export const SignupPage = () => {
             type="button"
             className="btn register-trigger"
           >
-            Already have an account? <span>Log In now!</span>
+            Already have an account? Log In now!
           </button>
         </Form.Item>
       </Form>

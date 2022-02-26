@@ -1,6 +1,6 @@
 import api from "../api";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { Conversation, Pagination, Message } from "../interfaces";
+import { Conversation, Pagination, Message, User } from "../interfaces";
 import { Socket } from "socket.io-client";
 interface ChatState {
   socket: Socket | null;
@@ -56,6 +56,25 @@ interface ChatState {
 //   scrollBottom: number;
 //   pagination: Pagination | null;
 // }
+
+export const newConversation = createAsyncThunk(
+  "chats/newConversation",
+  async (
+    data: { senderId: string; receiverId: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await api.post<{ new_conversation: Conversation }>(
+        "conversation",
+        data
+      );
+
+      return { new_conversation: res.data.new_conversation };
+    } catch (err: any) {
+      return rejectWithValue(err.response.data.msg);
+    }
+  }
+);
 
 export const getMyConversations = createAsyncThunk(
   "chats/getMyConversations",
@@ -139,6 +158,22 @@ export const sendFiles = createAsyncThunk(
   }
 );
 
+export const searchUsers = createAsyncThunk(
+  "chats/searchUsers",
+  async (searchName: string, { rejectWithValue }) => {
+    try {
+      const res = await api.post<{ users: User[] }>(
+        "conversation/search-users",
+        { searchName }
+      );
+
+      return { users: res.data.users };
+    } catch (err: any) {
+      return rejectWithValue(err.response.data.msg);
+    }
+  }
+);
+
 const initialChatState: ChatState = {
   socket: null,
   chats: [],
@@ -202,6 +237,16 @@ const chatSlice = createSlice({
       }
 
       // if the newArrivalMsg is from a friend, we just want to notify current user of the new message and let them scroll to bottom manually by not updating the scrollBottom
+    },
+
+    newConversation: (state, action) => {
+      const duplicated_conversation = state.chats.find(
+        (chat) => chat._id === action.payload._id
+      );
+
+      if (duplicated_conversation) return;
+
+      state.chats = [action.payload, ...state.chats];
     },
 
     senderTyping: (state, action) => {

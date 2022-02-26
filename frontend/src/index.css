@@ -186,10 +186,6 @@ input:focus {
 .ant-upload-list-picture-card .ant-upload-list-item-info::before {
   left: 0;
 }
-/* 
-.ant-image {
-  flex-basis: calc(100% / 3);
-} */
 
 /* input box */
 .msg_input {
@@ -213,4 +209,30 @@ input:focus {
 
 .msg_input .input_field input::placeholder {
   color: #8696a0;
+}
+
+/* antd modal */
+.ant-modal-content {
+  background: #3b4a54;
+  box-shadow: 0 17px 50px 0 rgba(11, 20, 26, 0.19),
+    0 12px 15px 0 rgba(11, 20, 26, 0.24);
+}
+
+.ant-modal-header {
+  background: #3b4a54;
+  border-bottom: 1px solid rgba(233, 237, 239, 0.12);
+}
+
+.ant-modal-footer {
+  border-top: 1px solid rgba(233, 237, 239, 0.12);
+}
+
+.ant-modal-body {
+  padding: 20px 0;
+}
+
+.ant-modal-close-x {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

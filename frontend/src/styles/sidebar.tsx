@@ -21,6 +21,16 @@ export const SidebarStyles = styled.div`
         margin-left: 1rem;
       }
     }
+
+    .utils {
+      span {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
   }
 
   .sidebar_search {

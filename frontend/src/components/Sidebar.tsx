@@ -1,13 +1,18 @@
+import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
+import { useAppDispatch } from "../app/hooks";
+import { RootState } from "../app/store";
+import { logout } from "../redux/auth-slice";
 import { SidebarStyles } from "../styles";
 import { SidebarChat } from "./SidebarChat";
-import { useSelector } from "react-redux";
-import { RootState } from "../app/store";
-import { useAppDispatch } from "../app/hooks";
-import { logout } from "../redux/auth-slice";
+import { useState } from "react";
+import { NewConversationModal } from "./NewConversationModal";
 
 export function Sidebar() {
   const dispatch = useAppDispatch();
+
+  const [showNewConversationModal, setShowNewConversationModal] =
+    useState(false);
 
   const conversations = useSelector(
     (state: RootState) => state.chatReducers.chats
@@ -40,8 +45,15 @@ export function Sidebar() {
             <h6>{user.username}</h6>
           </div>
         </div>
-        <div className="utils" onClick={onLogout}>
-          <span>
+        <div className="utils">
+          <span
+            onClick={() => {
+              setShowNewConversationModal(true);
+            }}
+          >
+            <i className="bx bx-user-plus"></i>
+          </span>
+          <span onClick={onLogout}>
             <i className="bx bx-log-out"></i>
           </span>
         </div>
@@ -70,6 +82,16 @@ export function Sidebar() {
             </NavLink>
           ))}
       </div>
+
+      {showNewConversationModal && (
+        <NewConversationModal
+          currentUser={user}
+          socket={socket}
+          closeModal={() => {
+            setShowNewConversationModal(false);
+          }}
+        />
+      )}
     </SidebarStyles>
   );
 }

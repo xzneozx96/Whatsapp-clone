@@ -1,10 +1,21 @@
 const Conversation = require("../models/conversation");
-const mongoose = require("mongoose");
+const User = require("../models/user");
 
 // create new conversation
 const newConversation = async (req, res) => {
   try {
     const { senderId, receiverId } = req.body;
+
+    // if there has already a conversation whose members includes both sender and receiver, we will not create a new one and simple the duplicated conversation
+    const duplicated_conversation = await Conversation.findOne({
+      members: [senderId, receiverId],
+    });
+
+    if (duplicated_conversation) {
+      return res.status(201).json({
+        new_conversation: duplicated_conversation,
+      });
+    }
 
     const new_conversation = new Conversation({
       members: [senderId, receiverId],
@@ -31,7 +42,9 @@ const myConversations = async (req, res) => {
 
     const my_conversations = await Conversation.find({
       members: { $in: userId },
-    }).populate("members", "username");
+    })
+      .sort({ $natural: -1 })
+      .populate("members", "username");
 
     return res.status(200).json({
       my_conversations,
@@ -64,8 +77,34 @@ const getSingleConversation = async (req, res) => {
   }
 };
 
+const searchUsers = async (req, res) => {
+  try {
+    const { searchName } = req.body;
+
+    let users;
+
+    if (searchName.length === 0) {
+      users = await User.find({}).limit(5).select("username");
+    } else {
+      users = await User.find({
+        username: { $regex: searchName, $options: "i" },
+      }).select("username");
+    }
+
+    return res.status(200).json({
+      users,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      msg: "No users found due to internal server error. Please try again later !",
+    });
+  }
+};
+
 module.exports = {
   newConversation,
   myConversations,
   getSingleConversation,
+  searchUsers,
 };
