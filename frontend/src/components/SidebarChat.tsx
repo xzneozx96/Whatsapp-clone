@@ -1,12 +1,14 @@
-import { SidebarChatStyles } from "../styles";
-import { Conversation } from "../interfaces/conversation";
 import moment from "moment";
+import { Fragment } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../app/store";
+import { ReactComponent as UnsentMsgIcon } from "../images/unsent-msg.svg";
+import { Conversation } from "../interfaces/conversation";
+import { SidebarChatStyles } from "../styles";
 
 export const SidebarChat: React.FC<{
   conversation: Conversation;
-}> = (props) => {
+}> = ({ conversation }) => {
   const user = useSelector((state: RootState) => state.authReducers.user);
 
   const online_friends = useSelector(
@@ -18,9 +20,7 @@ export const SidebarChat: React.FC<{
   );
 
   const getFriend = () => {
-    return props.conversation.members.find(
-      (member) => member._id !== user.userId
-    );
+    return conversation.members.find((member) => member._id !== user.userId);
   };
 
   const checkOnline = () => {
@@ -51,20 +51,35 @@ export const SidebarChat: React.FC<{
       <div className="chat_info">
         <div className="chat_metadata">
           <h6>{getFriend()?.username}</h6>
-          <span>{moment(props.conversation.updatedAt).calendar()}</span>
+          <span>{moment(conversation.updatedAt).calendar()}</span>
         </div>
         {!(
           senderTyping.typing &&
-          senderTyping.conversationId === props.conversation._id
+          senderTyping.conversationId === conversation._id
         ) && (
           <div className="recent_msg">
-            {props.conversation.latestMsg ||
+            {!conversation.latestMsg &&
               "You have not sent any message to this person. Let reach out to them now"}
+
+            {conversation.latestMsg && conversation.latestMsg.sent && (
+              <span>{conversation.latestMsg.message}</span>
+            )}
+
+            {conversation.latestMsg && !conversation.latestMsg.sent && (
+              <Fragment>
+                <UnsentMsgIcon style={{ marginRight: 4, width: 20 }} />
+                <span style={{ fontStyle: "italic" }}>
+                  {conversation.latestMsg.senderId === user.userId
+                    ? "You unsent this message"
+                    : "Message removed"}
+                </span>
+              </Fragment>
+            )}
           </div>
         )}
 
         {senderTyping.typing &&
-          senderTyping.conversationId === props.conversation._id && (
+          senderTyping.conversationId === conversation._id && (
             <div className="typing_indicator">
               {senderTyping.sender} is typing ...
             </div>

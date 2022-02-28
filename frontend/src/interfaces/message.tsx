@@ -8,5 +8,6 @@ export interface Message {
     fileType: string;
     fileName: string;
   }[];
+  sent?: boolean;
   createdAt?: string;
 }

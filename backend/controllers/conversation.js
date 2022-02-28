@@ -44,7 +44,8 @@ const myConversations = async (req, res) => {
       members: { $in: userId },
     })
       .sort({ $natural: -1 })
-      .populate("members", "username");
+      .populate("members", "username")
+      .populate("latestMsg");
 
     return res.status(200).json({
       my_conversations,

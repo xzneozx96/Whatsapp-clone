@@ -18,8 +18,23 @@ interface ChatState {
       fileName: string;
     }[];
     createdAt: string;
+    sent: boolean;
     currentUserId?: string;
   };
+  msgUnsent: {
+    _id: string;
+    conversationId: string;
+    senderId: string;
+    message: string;
+    files: {
+      path: string;
+      fileType: string;
+      fileName: string;
+    }[];
+    createdAt: string;
+    sent: boolean;
+    receiverId?: string;
+  } | null;
   senderTyping: {
     sender: string;
     receiverId: string;
@@ -108,14 +123,14 @@ export const getCurrentConversation = createAsyncThunk(
 export const getConversationPaginatedMessages = createAsyncThunk(
   "chats/getConversationMessages",
   async (
-    payload: { conversationId: string; page: number },
+    payload: { currentUserId: string; conversationId: string; page: number },
     { rejectWithValue }
   ) => {
     try {
       const res = await api.get<{
         conversation_messages: Message[];
         pagination: Pagination;
-      }>("message/" + payload.conversationId, {
+      }>("message/" + payload.currentUserId + "/" + payload.conversationId, {
         params: { page: payload.page },
       });
 
@@ -174,6 +189,39 @@ export const searchUsers = createAsyncThunk(
   }
 );
 
+export const unsend = createAsyncThunk(
+  "chats/unsend",
+  async (msgId: string, { rejectWithValue }) => {
+    try {
+      const res = await api.delete<{ unsent_msg: Message }>(
+        "message/unsend/" + msgId
+      );
+
+      return { unsent_msg: res.data.unsent_msg };
+    } catch (err: any) {
+      return rejectWithValue(err.response.data.msg);
+    }
+  }
+);
+
+export const deleteForCurrentUser = createAsyncThunk(
+  "chats/deleteForMe",
+  async (
+    payload: { msgId: string; currentUserId: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await api.delete<{ unsent_msg: Message }>(
+        "message/" + payload.currentUserId + "/" + payload.msgId
+      );
+
+      return res;
+    } catch (err: any) {
+      return rejectWithValue(err.response.data.msg);
+    }
+  }
+);
+
 const initialChatState: ChatState = {
   socket: null,
   chats: [],
@@ -185,8 +233,10 @@ const initialChatState: ChatState = {
     senderId: "",
     message: "",
     files: [],
+    sent: true,
     createdAt: "",
   },
+  msgUnsent: null,
   senderTyping: {
     sender: "",
     receiverId: "",
@@ -247,6 +297,10 @@ const chatSlice = createSlice({
       if (duplicated_conversation) return;
 
       state.chats = [action.payload, ...state.chats];
+    },
+
+    msgUnsent: (state, action) => {
+      state.msgUnsent = action.payload;
     },
 
     senderTyping: (state, action) => {

@@ -12,6 +12,10 @@ const UserSchema = new mongoose.Schema({
   refreshToken: {
     type: String,
   },
+  unwantedMessages: {
+    type: Array,
+    default: [],
+  },
 });
 
 module.exports = mongoose.model("user", UserSchema);

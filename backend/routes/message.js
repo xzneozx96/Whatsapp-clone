@@ -4,6 +4,11 @@ const messageController = require("../controllers/message");
 
 router.post("", messageController.newMessage);
 router.post("/files-upload", messageController.fileUpload);
-router.get("/:conversationId", messageController.conversationPaginatedMessages);
+router.get(
+  "/:userId/:conversationId",
+  messageController.conversationPaginatedMessages
+);
+router.delete("/unsend/:msgId", messageController.unsendMessage);
+router.delete("/:userId/:msgId", messageController.deleteForMe);
 
 module.exports = router;

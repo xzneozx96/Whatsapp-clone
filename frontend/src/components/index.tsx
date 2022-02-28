@@ -7,3 +7,4 @@ export * from "./Login";
 export * from "./Signup";
 export * from "./RequireAuth";
 export * from "./AssetsUpload";
+export * from "./SingleMessage";

@@ -81,6 +81,7 @@ const socketServer = (server) => {
             receiverId,
             message,
             files,
+            sent: true,
             createdAt,
           });
         });
@@ -114,6 +115,16 @@ const socketServer = (server) => {
             newConversation: new_conversation,
           });
         });
+      });
+    });
+
+    // handle when a msg is unsent
+    socket.on("unsendMsg", async (unsendMsg) => {
+      const { receiverId } = unsendMsg;
+
+      const receiver = users.get(receiverId);
+      receiver?.sockets.forEach((socketId) => {
+        io.to(socketId).emit("msgUnsent", { unsendMsg });
       });
     });
 

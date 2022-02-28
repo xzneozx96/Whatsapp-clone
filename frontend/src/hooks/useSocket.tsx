@@ -46,7 +46,15 @@ export function useSocket(currentUserId: string, dispatch: any) {
 
         socket.on(
           "receiveMsg",
-          ({ _id, conversationId, senderId, message, files, createdAt }) => {
+          ({
+            _id,
+            conversationId,
+            senderId,
+            message,
+            files,
+            sent,
+            createdAt,
+          }) => {
             dispatch(
               chatActions.newArrivalMsg({
                 _id,
@@ -54,6 +62,7 @@ export function useSocket(currentUserId: string, dispatch: any) {
                 senderId,
                 message,
                 files,
+                sent,
                 createdAt,
                 currentUserId,
               })
@@ -63,6 +72,10 @@ export function useSocket(currentUserId: string, dispatch: any) {
 
         socket.on("conversationCreated", ({ newConversation }) => {
           dispatch(chatActions.newConversation(newConversation));
+        });
+
+        socket.on("msgUnsent", ({ unsendMsg }) => {
+          dispatch(chatActions.msgUnsent(unsendMsg));
         });
       });
   }, [currentUserId, dispatch]);

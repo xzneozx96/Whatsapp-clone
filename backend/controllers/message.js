@@ -1,13 +1,12 @@
 const Conversation = require("../models/conversation");
 const Message = require("../models/message");
+const User = require("../models/user");
 
 // send new message
 const newMessage = async (req, res) => {
   try {
     // create new message
     const { conversationId, senderId, message } = req.body;
-
-    console.log(req.files);
 
     const files =
       req.files?.map((file) => ({
@@ -27,7 +26,7 @@ const newMessage = async (req, res) => {
 
     // update latestMsg field from the Cwhere this new_msg belongs to
     await Conversation.findByIdAndUpdate(conversationId, {
-      latestMsg: new_msg.message,
+      latestMsg: new_msg._id,
     });
 
     return res.status(201).json({
@@ -65,10 +64,14 @@ const conversationMessages = async (req, res) => {
 
 const conversationPaginatedMessages = async (req, res) => {
   try {
-    const { conversationId } = req.params;
+    const { userId, conversationId } = req.params;
     const page = +req.query.page || 1; // if the query page does not exist, user will be redirected to page 1
 
     const messages_per_page = 30; // number of messasges returned on pagination
+
+    const current_user = await User.findOne({ _id: userId });
+
+    const unwanted_messages = current_user.unwantedMessages;
 
     // find all messages that that belong to a conversation
     // number of messages that belong to a conversation
@@ -76,8 +79,10 @@ const conversationPaginatedMessages = async (req, res) => {
       conversationId,
     }).countDocuments();
 
+    // exclude unwanted message while fetching paginated ones using $nin (opposite to $in operator)
     const paginated_messages = await Message.find({
       conversationId,
+      _id: { $nin: unwanted_messages },
     })
       .sort({ $natural: -1 }) // fetch latest messages
       .skip((page - 1) * messages_per_page) // ignore items from previous page
@@ -102,6 +107,40 @@ const conversationPaginatedMessages = async (req, res) => {
   }
 };
 
+const unsendMessage = async (req, res) => {
+  try {
+    const { msgId } = req.params;
+
+    const unsent_msg = await Message.findByIdAndUpdate(msgId, { sent: false });
+
+    if (unsent_msg) {
+      return res.status(200).json({ unsent_msg });
+    }
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      msg: "Can not delete message due to internal server error. Please try again later !",
+    });
+  }
+};
+
+const deleteForMe = async (req, res) => {
+  try {
+    const { userId, msgId } = req.params;
+
+    await User.findByIdAndUpdate(userId, {
+      $push: { unwantedMessages: msgId },
+    });
+
+    return res.sendStatus(204);
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      msg: "Delete message failed due to internal server error. Please try again later !",
+    });
+  }
+};
+
 const fileUpload = (req, res) => {
   if (req.file) {
     return res.status(200).json({
@@ -120,4 +159,6 @@ module.exports = {
   conversationMessages,
   conversationPaginatedMessages,
   fileUpload,
+  unsendMessage,
+  deleteForMe,
 };

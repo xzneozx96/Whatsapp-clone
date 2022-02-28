@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Message = require("./message");
 const User = require("./user");
 
 const Schema = mongoose.Schema;
@@ -14,7 +15,7 @@ const ConversationSchema = new Schema(
     ],
     latestMsg: {
       type: String,
-      default: "",
+      ref: Message,
     },
   },
   { timestamps: true }

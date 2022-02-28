@@ -1,3 +1,5 @@
+import { Message } from "./message";
+
 export interface Conversation {
   _id: string;
   members: {
@@ -6,5 +8,5 @@ export interface Conversation {
   }[];
   createdAt: string;
   updatedAt: string;
-  latestMsg: string;
+  latestMsg: Message;
 }

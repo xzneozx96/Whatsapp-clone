@@ -29,6 +29,10 @@ const MessageSchema = new mongoose.Schema(
         },
       },
     ],
+    sent: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

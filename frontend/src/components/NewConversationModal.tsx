@@ -77,6 +77,7 @@ export const NewConversationModal: React.FC<{
       visible={isModalVisible}
       onOk={handleOk}
       onCancel={handleCancel}
+      centered
       footer={[
         <button
           key={"cancel-search"}

@@ -1,7 +1,6 @@
-import { Dropdown, Menu, Tooltip, Image } from "antd";
+import { Dropdown, Menu, Tooltip } from "antd";
 import { Picker } from "emoji-mart";
 import "emoji-mart/css/emoji-mart.css";
-import moment from "moment";
 import { Fragment, RefObject, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -9,7 +8,6 @@ import { useAppDispatch } from "../app/hooks";
 import { RootState } from "../app/store";
 import { ReactComponent as AssetUploadIcon } from "../images/asset-upload.svg";
 import { ReactComponent as FileUploadIcon } from "../images/file-upload.svg";
-import { ReactComponent as EmptyUploadIcon } from "../images/empty-upload.svg";
 import { Message } from "../interfaces/message";
 import {
   chatActions,
@@ -20,15 +18,13 @@ import {
 import { ChatStyles } from "../styles";
 import { openInfoNotification } from "../utils/antdNoti";
 import { AssetsUpload } from "./AssetsUpload";
+import { SingleMessage } from "./SingleMessage";
 
 export function Chat() {
-  const API_URL = "http://localhost:3500/";
-
   const dispatch = useAppDispatch();
 
   const conversationId = useParams<string>()?.conversationId || "";
 
-  // const latesMsgRef = useRef() as React.MutableRefObject<HTMLDivElement>;
   const msgInput = useRef() as RefObject<HTMLInputElement>;
   const chatBodyRef = useRef() as React.MutableRefObject<HTMLDivElement>;
 
@@ -53,6 +49,9 @@ export function Chat() {
   const newArrivalMsg = useSelector(
     (state: RootState) => state.chatReducers.newArrivalMsg
   );
+  const msgUnsent = useSelector(
+    (state: RootState) => state.chatReducers.msgUnsent
+  );
   const scrollBottom = useSelector(
     (state: RootState) => state.chatReducers.scrollBottom
   );
@@ -73,6 +72,7 @@ export function Chat() {
   useEffect(() => {
     dispatch(
       getConversationPaginatedMessages({
+        currentUserId: user.userId,
         conversationId: conversationId || "",
         page: 1,
       })
@@ -81,7 +81,7 @@ export function Chat() {
       .then((result) => {
         setMessages(result.conversation_messages.reverse());
       });
-  }, [dispatch, conversationId]);
+  }, [dispatch, conversationId, user]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -121,6 +121,28 @@ export function Chat() {
       setMessages((prev) => [...prev, newArrivalMsg]);
     }
   }, [newArrivalMsg, currentConversation]);
+
+  useEffect(() => {
+    // if an unsent msg shows up and belongs to the current conversation, update the chat history
+    if (
+      msgUnsent &&
+      currentConversation?.members.some(
+        (mem) => mem._id === msgUnsent.receiverId
+      )
+    ) {
+      setMessages((prev) => {
+        const updated_messages = prev.map((msg) => {
+          if (msg._id === msgUnsent._id) {
+            return { ...msg, sent: false };
+          }
+          return msg;
+        });
+        return updated_messages;
+      });
+
+      // setMessages((prev) => [...prev, msgUnsent]);
+    }
+  }, [msgUnsent, currentConversation]);
 
   const getFriend = () => {
     return currentConversation?.members.find(
@@ -178,6 +200,7 @@ export function Chat() {
 
       dispatch(
         getConversationPaginatedMessages({
+          currentUserId: user.userId,
           conversationId: conversationId || "",
           page: pagination!.nextPage,
         })
@@ -266,13 +289,29 @@ export function Chat() {
   };
 
   // this function gets executed after users send files successfully from AssetUpload component
-  const updateMessages = (new_msg: Message) => {
+  const updateMessagesWithNewArrival = (new_msg: Message) => {
     setMessages([...messages, new_msg]);
 
     // wait for UI to update then scroll to bottom once users finish uploading then get redirect to chat messages
     setTimeout(() => {
       manualScroll(chatBodyRef.current.scrollHeight);
     }, 300);
+  };
+
+  const updateMessagesWithUnsend = (unsend_msg: Message) => {
+    const updated_messages = messages.map((msg) => {
+      if (msg._id === unsend_msg._id) {
+        msg.sent = false;
+        return msg;
+      }
+      return msg;
+    });
+    setMessages(updated_messages);
+  };
+
+  const updateMessagesWithDeleteForMe = (deleted_msg: Message) => {
+    const sent_messages = messages.filter((msg) => msg._id !== deleted_msg._id);
+    setMessages(sent_messages);
   };
 
   const menu = (
@@ -300,18 +339,6 @@ export function Chat() {
       </Menu.Item>
     </Menu>
   );
-
-  // this function hepls remove Date.now() value from filename created by backend
-  const getFileNameForUI = (filename: string) => {
-    // convert string into array
-    const splitted_filename = filename.split("-");
-
-    // remove the first ele - the Date.now() value from this array
-    splitted_filename.shift();
-
-    // convert array back to string
-    return splitted_filename.join("-");
-  };
 
   // make dropdown stay opened when click on its item
   // const handleVisibleChange = (flag: boolean) => {
@@ -372,85 +399,15 @@ export function Chat() {
               <div className="chat_messages position-relative">
                 {messages &&
                   messages.map((msg) => (
-                    <div
-                      className={`chat_msg ${
-                        msg.senderId === user.userId ? "me" : ""
-                      }`}
+                    <SingleMessage
+                      currentUser={user}
+                      receiver={receiver!}
+                      socket={socket}
+                      msg={msg}
                       key={msg._id}
-                    >
-                      {msg.files && msg.files.length > 0 && (
-                        <div className="chat_files">
-                          <Image.PreviewGroup>
-                            {msg.files.map((file) => (
-                              <Fragment key={file.fileName}>
-                                {/* UI for viewing images */}
-                                {file.fileType.includes("image") && (
-                                  <Image
-                                    style={{
-                                      borderRadius: 6,
-                                      padding: 3,
-                                      backgroundColor: "#005c4b",
-                                      height: 140,
-                                      width: 140,
-                                      objectFit: "cover",
-                                    }}
-                                    src={API_URL + file.path}
-                                    alt="file"
-                                  />
-                                )}
-
-                                {/* UI for viewing videos */}
-                                {file.fileType.includes("video") && (
-                                  <video
-                                    controls
-                                    style={{
-                                      borderRadius: 6,
-                                      maxHeight: 400,
-                                      width: 300,
-                                    }}
-                                    src={API_URL + file.path}
-                                  ></video>
-                                )}
-
-                                {/* UI for downloading files (no preview) */}
-                                {file.fileType.includes("application") && (
-                                  <div className="document_holder">
-                                    <div className="chat_text">
-                                      <EmptyUploadIcon
-                                        style={{
-                                          marginRight: 10,
-                                          width: 20,
-                                          height: "auto",
-                                        }}
-                                      />
-                                      <span className="msg_content">
-                                        <a href={API_URL + file.path}>
-                                          {getFileNameForUI(file.fileName)}
-                                        </a>
-                                      </span>
-                                      <span className="msg_timestamp">
-                                        {moment(msg.createdAt).calendar()}
-                                      </span>
-                                    </div>
-                                  </div>
-                                )}
-                              </Fragment>
-                            ))}
-                          </Image.PreviewGroup>
-                        </div>
-
-                        // download documents
-                      )}
-
-                      {msg.message.length > 0 && (
-                        <div className="chat_text">
-                          <span className="msg_content">{msg.message}</span>
-                          <span className="msg_timestamp">
-                            {moment(msg.createdAt).calendar()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                      unsendMsg={updateMessagesWithUnsend}
+                      deleteForMe={updateMessagesWithDeleteForMe}
+                    />
                   ))}
 
                 {senderTyping.typing &&
@@ -494,7 +451,7 @@ export function Chat() {
                   setUploading(false);
                 }}
                 fileSent={(new_msg: Message) => {
-                  updateMessages(new_msg);
+                  updateMessagesWithNewArrival(new_msg);
                 }}
                 senderId={user.userId}
                 receiverId={receiver?._id || ""}
@@ -521,6 +478,7 @@ export function Chat() {
                 overlay={menu}
                 trigger={["click"]}
                 placement="topCenter"
+                overlayClassName="upload_trigger"
               >
                 <i className="bx bx-link-alt"></i>
               </Dropdown>
