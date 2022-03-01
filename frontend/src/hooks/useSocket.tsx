@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { io } from "socket.io-client";
-import { chatActions, getMyConversations } from "../redux/chat-slice";
+import { chatActions } from "../redux/chat-slice";
+import { getMyConversations } from "../redux/async-thunks";
 
 export function useSocket(currentUserId: string, dispatch: any) {
   useEffect(() => {

@@ -17,6 +17,14 @@ const ConversationSchema = new Schema(
       type: String,
       ref: Message,
     },
+    hasMsg: {
+      type: Boolean,
+      default: false,
+    },
+    seen: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

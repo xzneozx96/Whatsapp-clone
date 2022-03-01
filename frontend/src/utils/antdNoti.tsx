@@ -29,5 +29,6 @@ export const openInfoNotification = (info_msg: string) => {
     duration: 4,
     btn: <button className="btn primary_btn">Open</button>,
     onClick: scrollBottom,
+    key,
   });
 };

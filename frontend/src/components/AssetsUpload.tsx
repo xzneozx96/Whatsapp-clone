@@ -5,7 +5,7 @@ import { useAppDispatch } from "../app/hooks";
 import { RootState } from "../app/store";
 import { ReactComponent as EmptyUploadIcon } from "../images/empty-upload.svg";
 import { Conversation, Message } from "../interfaces";
-import { sendFiles } from "../redux/chat-slice";
+import { sendFiles } from "../redux/async-thunks";
 import { AssetsUploadStyles } from "../styles";
 
 export const AssetsUpload: React.FC<{

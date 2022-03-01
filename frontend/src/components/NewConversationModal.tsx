@@ -2,7 +2,7 @@ import { Avatar, Modal } from "antd";
 import { useState, useRef, useEffect } from "react";
 import { useAppDispatch } from "../app/hooks";
 import { User } from "../interfaces";
-import { newConversation, searchUsers } from "../redux/chat-slice";
+import { newConversation, searchUsers } from "../redux/async-thunks";
 import { NewConversationModalStyles } from "../styles";
 import { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
@@ -16,14 +16,14 @@ export const NewConversationModal: React.FC<{
   const navigate = useNavigate();
 
   const [isModalVisible, setIsModalVisible] = useState(true);
-  const [users, setUsers] = useState<User[]>([]);
+  const [members, setMembers] = useState<User[]>([]);
   const debouncer = useRef<any>(); // value held by ref won't be clear when component re-renders
 
   useEffect(() => {
     dispatch(searchUsers(""))
       .unwrap()
       .then((result) => {
-        setUsers(result.users);
+        setMembers(result.users);
       });
   }, [dispatch]);
 
@@ -45,7 +45,7 @@ export const NewConversationModal: React.FC<{
     debouncer.current = setTimeout(async () => {
       const result = await dispatch(searchUsers(search_value)).unwrap();
 
-      setUsers(result.users);
+      setMembers(result.users);
     }, 400);
   };
 
@@ -103,16 +103,16 @@ export const NewConversationModal: React.FC<{
         </div>
 
         <div className="suggestions">
-          {users.length === 0 && <h6>No users found</h6>}
+          {members.length === 0 && <h6>No users found</h6>}
 
-          {users.length > 0 && <h6>Suggestions</h6>}
-          {users.length > 0 &&
-            users.map((user) => (
+          {members.length > 0 && <h6>Suggestions</h6>}
+          {members.length > 0 &&
+            members.map((mem) => (
               <div
                 className="item"
-                key={user._id}
+                key={mem._id}
                 onClick={() => {
-                  handleCreateConversation(user._id);
+                  handleCreateConversation(mem._id);
                 }}
               >
                 <div className="avatar">
@@ -120,12 +120,12 @@ export const NewConversationModal: React.FC<{
                     size={40}
                     style={{ backgroundColor: "#6a7175", color: "#e9edef" }}
                   >
-                    {user.username[0].toUpperCase()}
+                    {mem.username[0].toUpperCase()}
                   </Avatar>
                 </div>
 
                 <div className="user_info">
-                  <h6 className="user_name">{user.username}</h6>
+                  <h6 className="user_name">{mem.username}</h6>
                   <div className="brief_desc">
                     Brief Introduction about this person
                   </div>

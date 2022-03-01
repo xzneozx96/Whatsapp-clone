@@ -10,11 +10,12 @@ import { ReactComponent as AssetUploadIcon } from "../images/asset-upload.svg";
 import { ReactComponent as FileUploadIcon } from "../images/file-upload.svg";
 import { Message } from "../interfaces/message";
 import {
-  chatActions,
   getConversationPaginatedMessages,
   getCurrentConversation,
+  markConversationSeen,
   sendMsg,
-} from "../redux/chat-slice";
+} from "../redux/async-thunks";
+import { chatActions } from "../redux/chat-slice";
 import { ChatStyles } from "../styles";
 import { openInfoNotification } from "../utils/antdNoti";
 import { AssetsUpload } from "./AssetsUpload";
@@ -35,7 +36,6 @@ export function Chat() {
   const [loading, setShowLoading] = useState(false);
   const [scrollUp, setScrollUp] = useState(0);
   const [uploadFileType, setUploadFileType] = useState("");
-  // const [dropdownVisible, setDropdownVisible] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const user = useSelector((state: RootState) => state.authReducers.user);
@@ -43,14 +43,14 @@ export function Chat() {
   const currentConversation = useSelector(
     (state: RootState) => state.chatReducers.currentChat
   );
+  const currentMessages = useSelector(
+    (state: RootState) => state.chatReducers.currentMessages
+  );
   const online_friends = useSelector(
     (state: RootState) => state.chatReducers.onlineFriends
   );
   const newArrivalMsg = useSelector(
     (state: RootState) => state.chatReducers.newArrivalMsg
-  );
-  const msgUnsent = useSelector(
-    (state: RootState) => state.chatReducers.msgUnsent
   );
   const scrollBottom = useSelector(
     (state: RootState) => state.chatReducers.scrollBottom
@@ -66,6 +66,21 @@ export function Chat() {
   );
 
   useEffect(() => {
+    // mark a conversation as seen when user clicks on it => update UI
+    dispatch(chatActions.conversationSeen());
+
+    // call API that update seen property of the conversation
+    if (currentConversation) {
+      dispatch(
+        markConversationSeen({
+          conversationId: currentConversation._id,
+          currentUserId: user.userId,
+        })
+      );
+    }
+  });
+
+  useEffect(() => {
     dispatch(getCurrentConversation(conversationId || ""));
   }, [dispatch, conversationId]);
 
@@ -76,11 +91,7 @@ export function Chat() {
         conversationId: conversationId || "",
         page: 1,
       })
-    )
-      .unwrap()
-      .then((result) => {
-        setMessages(result.conversation_messages.reverse());
-      });
+    );
   }, [dispatch, conversationId, user]);
 
   useEffect(() => {
@@ -98,51 +109,18 @@ export function Chat() {
 
   useEffect(() => {
     const { scrollTop, clientHeight, scrollHeight } = chatBodyRef.current;
-    if (newArrivalMsg.senderId !== "") {
-      if (
-        newArrivalMsg.senderId !== "" &&
-        scrollTop + clientHeight > scrollHeight - 50
-      ) {
+    if (newArrivalMsg.senderId === receiver?._id) {
+      // immediately scrol user to the bottom if the newArrivalMsg belongs to the conversation he/she is viewing
+      if (scrollTop + clientHeight > scrollHeight - 100) {
         dispatch(chatActions.manualScrollBottom());
-      } else {
+      }
+
+      // otherwise, just show notify them of a new msg
+      else {
         openInfoNotification("You've got a new messasge");
       }
     }
-  }, [newArrivalMsg, dispatch]);
-
-  useEffect(() => {
-    // if new msg arrives and belongs to the current conversation update the chat history - messages
-    if (
-      newArrivalMsg &&
-      currentConversation?.members.some(
-        (mem) => mem._id === newArrivalMsg.senderId
-      )
-    ) {
-      setMessages((prev) => [...prev, newArrivalMsg]);
-    }
-  }, [newArrivalMsg, currentConversation]);
-
-  useEffect(() => {
-    // if an unsent msg shows up and belongs to the current conversation, update the chat history
-    if (
-      msgUnsent &&
-      currentConversation?.members.some(
-        (mem) => mem._id === msgUnsent.receiverId
-      )
-    ) {
-      setMessages((prev) => {
-        const updated_messages = prev.map((msg) => {
-          if (msg._id === msgUnsent._id) {
-            return { ...msg, sent: false };
-          }
-          return msg;
-        });
-        return updated_messages;
-      });
-
-      // setMessages((prev) => [...prev, msgUnsent]);
-    }
-  }, [msgUnsent, currentConversation]);
+  }, [dispatch, receiver, newArrivalMsg]);
 
   const getFriend = () => {
     return currentConversation?.members.find(
@@ -194,8 +172,6 @@ export function Chat() {
 
     // fetch old messages with infinite scroll
     if (scrollTop === 0 && pagination?.hasNextPage) {
-      console.log("fetching old messages");
-
       setShowLoading(true);
 
       dispatch(
@@ -206,17 +182,12 @@ export function Chat() {
         })
       )
         .unwrap()
-        .then((result) => {
+        .then(() => {
           // hide loading indicator
           setShowLoading(false);
 
-          // make scrollbar little bit offset from top
+          // make scrollbar little bit offset from top so that user can keep scrolling
           setScrollUp(scrollUp + 1);
-
-          const old_messages = result.conversation_messages.reverse();
-
-          // update current messages
-          setMessages([...old_messages, ...messages]);
         });
     } else {
       return;
@@ -238,7 +209,6 @@ export function Chat() {
       receiverId: receiver!._id,
     });
 
-    setMessages([...messages, result.new_msg]);
     setNewMsg("");
     setShowEmojiPicker(false);
     manualScroll(chatBodyRef.current.scrollHeight);
@@ -289,29 +259,13 @@ export function Chat() {
   };
 
   // this function gets executed after users send files successfully from AssetUpload component
-  const updateMessagesWithNewArrival = (new_msg: Message) => {
+  const updateMessagesWithNewFilesArrival = (new_msg: Message) => {
     setMessages([...messages, new_msg]);
 
     // wait for UI to update then scroll to bottom once users finish uploading then get redirect to chat messages
     setTimeout(() => {
       manualScroll(chatBodyRef.current.scrollHeight);
     }, 300);
-  };
-
-  const updateMessagesWithUnsend = (unsend_msg: Message) => {
-    const updated_messages = messages.map((msg) => {
-      if (msg._id === unsend_msg._id) {
-        msg.sent = false;
-        return msg;
-      }
-      return msg;
-    });
-    setMessages(updated_messages);
-  };
-
-  const updateMessagesWithDeleteForMe = (deleted_msg: Message) => {
-    const sent_messages = messages.filter((msg) => msg._id !== deleted_msg._id);
-    setMessages(sent_messages);
   };
 
   const menu = (
@@ -339,11 +293,6 @@ export function Chat() {
       </Menu.Item>
     </Menu>
   );
-
-  // make dropdown stay opened when click on its item
-  // const handleVisibleChange = (flag: boolean) => {
-  //   setDropdownVisible(flag);
-  // };
 
   return (
     <ChatStyles>
@@ -397,18 +346,15 @@ export function Chat() {
               <div className="empty_space"></div>
 
               <div className="chat_messages position-relative">
-                {messages &&
-                  messages.map((msg) => (
-                    <SingleMessage
-                      currentUser={user}
-                      receiver={receiver!}
-                      socket={socket}
-                      msg={msg}
-                      key={msg._id}
-                      unsendMsg={updateMessagesWithUnsend}
-                      deleteForMe={updateMessagesWithDeleteForMe}
-                    />
-                  ))}
+                {currentMessages.map((msg) => (
+                  <SingleMessage
+                    currentUser={user}
+                    receiver={receiver!}
+                    socket={socket}
+                    msg={msg}
+                    key={msg._id}
+                  />
+                ))}
 
                 {senderTyping.typing &&
                   senderTyping.conversationId === conversationId && (
@@ -451,7 +397,7 @@ export function Chat() {
                   setUploading(false);
                 }}
                 fileSent={(new_msg: Message) => {
-                  updateMessagesWithNewArrival(new_msg);
+                  updateMessagesWithNewFilesArrival(new_msg);
                 }}
                 senderId={user.userId}
                 receiverId={receiver?._id || ""}

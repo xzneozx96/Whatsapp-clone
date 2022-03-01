@@ -1,12 +1,12 @@
+import { useState } from "react";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { useAppDispatch } from "../app/hooks";
 import { RootState } from "../app/store";
 import { logout } from "../redux/auth-slice";
 import { SidebarStyles } from "../styles";
-import { SidebarChat } from "./SidebarChat";
-import { useState } from "react";
 import { NewConversationModal } from "./NewConversationModal";
+import { SidebarChat } from "./SidebarChat";
 
 export function Sidebar() {
   const dispatch = useAppDispatch();
@@ -17,6 +17,7 @@ export function Sidebar() {
   const conversations = useSelector(
     (state: RootState) => state.chatReducers.chats
   );
+
   const user = useSelector((state: RootState) => state.authReducers.user);
   const socket = useSelector((state: RootState) => state.chatReducers.socket);
 
@@ -26,6 +27,10 @@ export function Sidebar() {
     // notify socket server that a user has disconnected as soon as he/she logs out
     socket?.disconnect();
   };
+
+  // useEffect(() => {
+  //   dispatch(chatActions.conversationSeen());
+  // }, [dispatch]);
 
   return (
     <SidebarStyles>
@@ -72,15 +77,19 @@ export function Sidebar() {
 
       <div className="sidebar_chats">
         {conversations &&
-          conversations.map((c) => (
-            <NavLink
-              className={({ isActive }) => (isActive ? "highlighted" : "")}
-              key={c._id}
-              to={c._id}
-            >
-              <SidebarChat conversation={c} />
-            </NavLink>
-          ))}
+          conversations.map(
+            (c) =>
+              c.hasMsg && (
+                <NavLink
+                  className={({ isActive }) => (isActive ? "highlighted" : "")}
+                  key={c._id}
+                  to={c._id}
+                  // onClick={() => dispatch(chatActions.conversationSeen())}
+                >
+                  <SidebarChat conversation={c} />
+                </NavLink>
+              )
+          )}
       </div>
 
       {showNewConversationModal && (

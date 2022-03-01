@@ -44,9 +44,31 @@ export const SidebarChatStyles = styled.div`
     justify-content: center;
     flex-direction: column;
 
+    &.unseen {
+      .chat_metadata {
+        h6 {
+          font-weight: 500;
+        }
+
+        span {
+          font-weight: 600;
+          color: #00a884;
+        }
+      }
+
+      .recent_msg {
+        color: #d1d7d8;
+        font-weight: 500;
+      }
+    }
+
     .chat_metadata {
       display: flex;
       justify-content: space-between;
+
+      h6 {
+        font-weight: 400;
+      }
 
       span {
         font-size: 12px;
@@ -55,16 +77,30 @@ export const SidebarChatStyles = styled.div`
     }
 
     .recent_msg {
-      /* wrap text into 1 line then show ellipsis for overflowing characters */
-      width: auto;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      /* end of the process */
-
+      display: flex;
+      align-items: center;
       margin-top: 3px;
       font-size: 14px;
       color: #8696a0;
+
+      .msg_content {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex-grow: 1;
+        min-width: 0;
+      }
+
+      .msg_removed_holder {
+        flex-grow: 1;
+      }
+
+      .unseen_indicator {
+        flex: 0 0 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #00a884;
+      }
     }
 
     .typing_indicator {

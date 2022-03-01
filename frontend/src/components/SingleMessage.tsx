@@ -6,17 +6,16 @@ import { ReactComponent as UnsentMsgIcon } from "../images/unsent-msg.svg";
 import { Message } from "../interfaces";
 import { SingleMessageStyles } from "../styles";
 import { useAppDispatch } from "../app/hooks";
-import { deleteForCurrentUser, unsend } from "../redux/chat-slice";
+import { deleteForCurrentUser, unsend } from "../redux/async-thunks";
 import { Socket } from "socket.io-client";
+import { chatActions } from "../redux/chat-slice";
 
 export const SingleMessage: React.FC<{
   msg: Message;
   currentUser: { userId: string; username: string };
   receiver: { _id: string; username: string };
   socket: Socket | null;
-  unsendMsg: (msg: Message) => void;
-  deleteForMe: (msg: Message) => void;
-}> = ({ msg, currentUser, receiver, socket, unsendMsg, deleteForMe }) => {
+}> = ({ msg, currentUser, receiver, socket }) => {
   const API_URL = "http://localhost:3500/";
 
   const dispatch = useAppDispatch();
@@ -41,7 +40,6 @@ export const SingleMessage: React.FC<{
     // unsend a message
     if (getConfirmText().toLowerCase().includes("unsend")) {
       // 1. update UI
-      unsendMsg(onDeleteMsg!);
       const result = await dispatch(unsend(onDeleteMsg?._id || "")).unwrap();
 
       // 2. notify socket server so that the other member notices there is a message gets unsent
@@ -55,7 +53,7 @@ export const SingleMessage: React.FC<{
 
     // delete a message for me
     // 1. update UI
-    deleteForMe(onDeleteMsg!);
+    dispatch(chatActions.deleteForMe(onDeleteMsg));
 
     // call api
     dispatch(
@@ -108,12 +106,10 @@ export const SingleMessage: React.FC<{
   );
 
   return (
-    <SingleMessageStyles>
-      <div
-        className={`chat_msg ${
-          msg.senderId === currentUser.userId ? "me" : ""
-        }`}
-      >
+    <SingleMessageStyles
+      className={msg.senderId === currentUser.userId ? "me" : ""}
+    >
+      <div className="chat_msg">
         {/* UI for messages that contain files */}
         {msg.files && msg.files.length > 0 && (
           <div className="chat_files">
@@ -160,11 +156,11 @@ export const SingleMessage: React.FC<{
                             height: "auto",
                           }}
                         />
-                        <span className="msg_content">
+                        <div className="msg_content">
                           <a href={API_URL + file.path}>
                             {getFileNameForUI(file.fileName)}
                           </a>
-                        </span>
+                        </div>
                         <span className="msg_timestamp">
                           {moment(msg.createdAt).calendar()}
                         </span>

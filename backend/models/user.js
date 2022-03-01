@@ -16,6 +16,10 @@ const UserSchema = new mongoose.Schema({
     type: Array,
     default: [],
   },
+  unseenConversation: {
+    type: Array,
+    default: [],
+  },
 });
 
 module.exports = mongoose.model("user", UserSchema);

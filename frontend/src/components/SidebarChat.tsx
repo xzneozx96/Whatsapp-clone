@@ -1,5 +1,4 @@
 import moment from "moment";
-import { Fragment } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../app/store";
 import { ReactComponent as UnsentMsgIcon } from "../images/unsent-msg.svg";
@@ -48,7 +47,7 @@ export const SidebarChat: React.FC<{
         </div>
       </div>
 
-      <div className="chat_info">
+      <div className={`chat_info ${!conversation.seen ? "unseen" : ""}`}>
         <div className="chat_metadata">
           <h6>{getFriend()?.username}</h6>
           <span>{moment(conversation.updatedAt).calendar()}</span>
@@ -62,19 +61,23 @@ export const SidebarChat: React.FC<{
               "You have not sent any message to this person. Let reach out to them now"}
 
             {conversation.latestMsg && conversation.latestMsg.sent && (
-              <span>{conversation.latestMsg.message}</span>
+              <span className="msg_content">
+                {conversation.latestMsg.message}
+              </span>
             )}
 
             {conversation.latestMsg && !conversation.latestMsg.sent && (
-              <Fragment>
+              <div className="msg_removed_holder">
                 <UnsentMsgIcon style={{ marginRight: 4, width: 20 }} />
                 <span style={{ fontStyle: "italic" }}>
                   {conversation.latestMsg.senderId === user.userId
                     ? "You unsent this message"
                     : "Message removed"}
                 </span>
-              </Fragment>
+              </div>
             )}
+
+            {!conversation.seen && <span className="unseen_indicator"></span>}
           </div>
         )}
 

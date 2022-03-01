@@ -1,18 +1,17 @@
 import styled from "styled-components";
 
 export const SingleMessageStyles = styled.div`
-  .chat_msg {
-    margin-bottom: 5px;
-    border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
 
-    &.me {
-      width: 100%;
-      text-align: right;
+  &.me {
+    align-items: flex-end;
 
+    .chat_msg {
       .chat_text {
         background: #005c4b;
-        margin-left: auto;
-        display: block;
 
         .actions_toggle {
           background: radial-gradient(
@@ -28,12 +27,17 @@ export const SingleMessageStyles = styled.div`
         justify-content: flex-end;
       }
     }
+  }
+
+  .chat_msg {
+    margin-bottom: 5px;
+    border-radius: 4px;
+    max-width: 75%;
 
     .chat_text {
       width: fit-content;
-      max-width: 60%;
       border-radius: 4px;
-      padding: 6px 8px;
+      padding: 8px 10px;
       background: #202c33;
       font-size: 14px;
       color: #e9edef;

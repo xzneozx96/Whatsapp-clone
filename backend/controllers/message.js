@@ -24,9 +24,23 @@ const newMessage = async (req, res) => {
 
     await new_msg.save();
 
-    // update latestMsg field from the Cwhere this new_msg belongs to
+    // update latestMsg field from the Conversation where this new_msg belongs to
+    const on_update_conversation = await Conversation.findOne({
+      _id: conversationId,
+    });
+
+    // update unsendMessage field of the receiver
+    const receiverId = on_update_conversation.members.find(
+      (member) => member !== senderId
+    );
+
+    await User.findByIdAndUpdate(receiverId, {
+      $addToSet: { unseenConversation: conversationId },
+    });
+
     await Conversation.findByIdAndUpdate(conversationId, {
       latestMsg: new_msg._id,
+      hasMsg: true,
     });
 
     return res.status(201).json({

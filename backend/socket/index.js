@@ -43,7 +43,7 @@ const socketServer = (server) => {
 
       // notify this user's friend that he/she is now online
       for (let i = 0; i < chatters.length; i++) {
-        if (users.has(chatters[i]._id.toString())) {
+        if (users.has(chatters[i]?._id.toString())) {
           const chatter = users.get(chatters[i]._id.toString());
 
           chatter.sockets.forEach((socketId) => {
@@ -62,7 +62,7 @@ const socketServer = (server) => {
     // handle when user is sending and receiving messages
     socket.on(
       "sendMsg",
-      ({
+      async ({
         _id,
         conversationId,
         senderId,
@@ -71,20 +71,25 @@ const socketServer = (server) => {
         files,
         createdAt,
       }) => {
-        const friend = users.get(receiverId);
+        const members = [users.get(senderId), users.get(receiverId)];
 
-        friend?.sockets.forEach((socketId) => {
-          io.to(socketId).emit("receiveMsg", {
-            _id,
-            conversationId,
-            senderId,
-            receiverId,
-            message,
-            files,
-            sent: true,
-            createdAt,
+        // 1. notify all members of a chat about the new arrival message
+        members.forEach((mem) => {
+          mem?.sockets.forEach((socketId) => {
+            io.to(socketId).emit("receiveMsg", {
+              _id,
+              conversationId,
+              senderId,
+              receiverId,
+              message,
+              files,
+              sent: true,
+              createdAt,
+            });
           });
         });
+
+        // 2. update the chats by moving the chat that includes the new arrival message to the top of the chat list (move to the end of the collection in db)
       }
     );
 
@@ -116,15 +121,26 @@ const socketServer = (server) => {
           });
         });
       });
+
+      // const sender = users.get(senderId);
+
+      // sender?.sockets.forEach((socketId) => {
+      //   io.to(socketId).emit("conversationCreated", {
+      //     newConversation: new_conversation,
+      //   });
+      // });
     });
 
     // handle when a msg is unsent
     socket.on("unsendMsg", async (unsendMsg) => {
-      const { receiverId } = unsendMsg;
+      const { senderId, receiverId } = unsendMsg;
 
-      const receiver = users.get(receiverId);
-      receiver?.sockets.forEach((socketId) => {
-        io.to(socketId).emit("msgUnsent", { unsendMsg });
+      const members = [users.get(senderId), users.get(receiverId)];
+
+      members.forEach((mem) => {
+        mem?.sockets.forEach((socketId) => {
+          io.to(socketId).emit("msgUnsent", { unsendMsg });
+        });
       });
     });
 

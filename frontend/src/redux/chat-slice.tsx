@@ -1,10 +1,15 @@
-import api from "../api";
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { Conversation, Pagination, Message, User } from "../interfaces";
+import { createSlice } from "@reduxjs/toolkit";
 import { Socket } from "socket.io-client";
+import { Conversation, Message, Pagination } from "../interfaces";
+import {
+  getConversationPaginatedMessages,
+  getCurrentConversation,
+  getMyConversations,
+} from "./async-thunks";
 interface ChatState {
   socket: Socket | null;
   currentChat: Conversation | null;
+  currentMessages: Message[];
   onlineFriends: string[];
   chats: Conversation[];
   newArrivalMsg: {
@@ -21,20 +26,6 @@ interface ChatState {
     sent: boolean;
     currentUserId?: string;
   };
-  msgUnsent: {
-    _id: string;
-    conversationId: string;
-    senderId: string;
-    message: string;
-    files: {
-      path: string;
-      fileType: string;
-      fileName: string;
-    }[];
-    createdAt: string;
-    sent: boolean;
-    receiverId?: string;
-  } | null;
   senderTyping: {
     sender: string;
     receiverId: string;
@@ -45,187 +36,11 @@ interface ChatState {
   pagination: Pagination | null;
 }
 
-// interface ChatState {
-//   socket: Socket | null;
-//   chats: SingleChat[];
-//   currentChat: Conversation | null;
-//   onlineFriends: string[];
-// }
-
-// interface SingleChat {
-//   chat: Conversation;
-//   newArrivalMsg: {
-//     _id: string;
-//     conversationId: string;
-//     senderId: string;
-//     message: string;
-//     createdAt: string;
-//     currentUserId?: string;
-//   };
-//   senderTyping: {
-//     sender: string;
-//     receiverId: string;
-//     typing: boolean;
-//     conversationId: string;
-//   };
-//   scrollBottom: number;
-//   pagination: Pagination | null;
-// }
-
-export const newConversation = createAsyncThunk(
-  "chats/newConversation",
-  async (
-    data: { senderId: string; receiverId: string },
-    { rejectWithValue }
-  ) => {
-    try {
-      const res = await api.post<{ new_conversation: Conversation }>(
-        "conversation",
-        data
-      );
-
-      return { new_conversation: res.data.new_conversation };
-    } catch (err: any) {
-      return rejectWithValue(err.response.data.msg);
-    }
-  }
-);
-
-export const getMyConversations = createAsyncThunk(
-  "chats/getMyConversations",
-  async (userId: string, { rejectWithValue }) => {
-    try {
-      const res = await api.get<{ my_conversations: Conversation[] }>(
-        "conversation/" + userId
-      );
-
-      return { my_conversations: res.data.my_conversations };
-    } catch (err: any) {
-      return rejectWithValue(err.response.data.msg);
-    }
-  }
-);
-
-export const getCurrentConversation = createAsyncThunk(
-  "chats/getCurrentConversation",
-  async (conversationId: string, { rejectWithValue }) => {
-    try {
-      const res = await api.get<{ conversation: Conversation }>(
-        "conversation/single/" + conversationId
-      );
-      return { conversation: res.data.conversation };
-    } catch (err: any) {
-      return rejectWithValue(err.response.data.msg);
-    }
-  }
-);
-
-export const getConversationPaginatedMessages = createAsyncThunk(
-  "chats/getConversationMessages",
-  async (
-    payload: { currentUserId: string; conversationId: string; page: number },
-    { rejectWithValue }
-  ) => {
-    try {
-      const res = await api.get<{
-        conversation_messages: Message[];
-        pagination: Pagination;
-      }>("message/" + payload.currentUserId + "/" + payload.conversationId, {
-        params: { page: payload.page },
-      });
-
-      const { conversation_messages, pagination } = res.data;
-
-      return { conversation_messages, pagination };
-    } catch (err: any) {
-      return rejectWithValue(err.response.data.msg);
-    }
-  }
-);
-
-export const sendMsg = createAsyncThunk(
-  "chats/sendMsg",
-  async (new_msg: Message, { rejectWithValue }) => {
-    try {
-      const res = await api.post<{ new_msg: Message }>("message", new_msg);
-
-      return { new_msg: res.data.new_msg };
-    } catch (err: any) {
-      return rejectWithValue(err.response.data.msg);
-    }
-  }
-);
-
-export const sendFiles = createAsyncThunk(
-  "chats/uploadFiles",
-  async (formData: FormData, { rejectWithValue }) => {
-    try {
-      const res = await api.post<{ new_msg: Message }>("message", formData, {
-        onUploadProgress: (progressEvent) => {
-          console.log(progressEvent.loaded / progressEvent.total);
-        },
-      });
-
-      return { new_msg: res.data.new_msg };
-    } catch (err: any) {
-      return rejectWithValue(err.response.data.msg);
-    }
-  }
-);
-
-export const searchUsers = createAsyncThunk(
-  "chats/searchUsers",
-  async (searchName: string, { rejectWithValue }) => {
-    try {
-      const res = await api.post<{ users: User[] }>(
-        "conversation/search-users",
-        { searchName }
-      );
-
-      return { users: res.data.users };
-    } catch (err: any) {
-      return rejectWithValue(err.response.data.msg);
-    }
-  }
-);
-
-export const unsend = createAsyncThunk(
-  "chats/unsend",
-  async (msgId: string, { rejectWithValue }) => {
-    try {
-      const res = await api.delete<{ unsent_msg: Message }>(
-        "message/unsend/" + msgId
-      );
-
-      return { unsent_msg: res.data.unsent_msg };
-    } catch (err: any) {
-      return rejectWithValue(err.response.data.msg);
-    }
-  }
-);
-
-export const deleteForCurrentUser = createAsyncThunk(
-  "chats/deleteForMe",
-  async (
-    payload: { msgId: string; currentUserId: string },
-    { rejectWithValue }
-  ) => {
-    try {
-      const res = await api.delete<{ unsent_msg: Message }>(
-        "message/" + payload.currentUserId + "/" + payload.msgId
-      );
-
-      return res;
-    } catch (err: any) {
-      return rejectWithValue(err.response.data.msg);
-    }
-  }
-);
-
 const initialChatState: ChatState = {
   socket: null,
   chats: [],
   currentChat: null,
+  currentMessages: [],
   onlineFriends: [],
   newArrivalMsg: {
     _id: "",
@@ -236,7 +51,6 @@ const initialChatState: ChatState = {
     sent: true,
     createdAt: "",
   },
-  msgUnsent: null,
   senderTyping: {
     sender: "",
     receiverId: "",
@@ -246,13 +60,6 @@ const initialChatState: ChatState = {
   scrollBottom: 0,
   pagination: null,
 };
-
-// const initialChatState: ChatState = {
-//   socket: null,
-//   chats: [],
-//   currentChat: null,
-//   onlineFriends: [],
-// };
 
 const chatSlice = createSlice({
   name: "chats",
@@ -279,14 +86,50 @@ const chatSlice = createSlice({
     },
 
     newArrivalMsg: (state, action) => {
-      state.newArrivalMsg = action.payload;
+      const newArrivalMsg = action.payload;
+      const { currentMessages, chats, currentChat } = state;
+
+      // 1. Update current messages
+      state.newArrivalMsg = newArrivalMsg;
+
+      if (
+        newArrivalMsg &&
+        currentChat?.members.some((mem) => mem._id === newArrivalMsg.senderId)
+      ) {
+        state.currentMessages = [...currentMessages, newArrivalMsg];
+      }
 
       // update scrollBottom property by adding 1 to it if the newArrivalMsg is from current user so that the chatbox automatically scroll to bottom
+
+      // if the newArrivalMsg is from a friend, we just want to notify current user of the new message and let them scroll to bottom manually by not updating the scrollBottom
       if (action.payload.currentUserId === action.payload.senderId) {
         state.scrollBottom++;
       }
 
-      // if the newArrivalMsg is from a friend, we just want to notify current user of the new message and let them scroll to bottom manually by not updating the scrollBottom
+      // 2. Update current chats
+      // get the conversation where the new message comes from
+      const { conversationId } = newArrivalMsg;
+
+      const updated_chats = chats.map((chat) => {
+        if (chat._id === conversationId) {
+          return { ...chat, latestMsg: newArrivalMsg, seen: false };
+        }
+
+        return chat;
+      });
+
+      // move the newly updated chat to the top of the chat list
+      const single_updated_chat = updated_chats.find(
+        (chat) => chat._id === conversationId
+      );
+
+      single_updated_chat!.hasMsg = true;
+
+      const other_chats = updated_chats.filter(
+        (chat) => chat._id !== conversationId
+      );
+
+      state.chats = [single_updated_chat!, ...other_chats];
     },
 
     newConversation: (state, action) => {
@@ -300,7 +143,67 @@ const chatSlice = createSlice({
     },
 
     msgUnsent: (state, action) => {
-      state.msgUnsent = action.payload;
+      const msgUnsent = action.payload;
+
+      const { currentMessages, currentChat, chats } = state;
+
+      // 1. update messages list
+      if (
+        msgUnsent &&
+        currentChat?.members.some((mem) => mem._id === msgUnsent.receiverId)
+      ) {
+        const updated_messages = currentMessages.map((msg) => {
+          if (msg._id === msgUnsent._id) {
+            return { ...msg, sent: false };
+          }
+          return msg;
+        });
+
+        state.currentMessages = updated_messages;
+      }
+
+      // 2. update chats list. The below block of code is used to update the latestMsg field in case the unsend message is the latestMsg
+      const on_update_conversation = chats.find(
+        (chat) => chat._id === msgUnsent.conversationId
+      );
+
+      // check if the unsentMsg is the latestMsg
+      const is_unsend_same_as_latest =
+        msgUnsent._id === on_update_conversation!.latestMsg._id;
+
+      if (is_unsend_same_as_latest) {
+        const updated_conversations = chats.map((chat) => {
+          if (chat._id === on_update_conversation?._id) {
+            return { ...chat, latestMsg: { ...chat.latestMsg, sent: false } };
+          }
+
+          return chat;
+        });
+        state.chats = updated_conversations;
+      }
+    },
+
+    deleteForMe: (state, action) => {
+      const deleted_msg = action.payload;
+      const { currentMessages } = state;
+      const sent_messages = currentMessages.filter(
+        (msg) => msg._id !== deleted_msg._id
+      );
+      state.currentMessages = sent_messages;
+    },
+
+    conversationSeen: (state) => {
+      const { currentChat, chats } = state;
+
+      const updated_chats = chats.map((chat) => {
+        if (chat._id === currentChat?._id) {
+          return { ...chat, seen: true };
+        }
+
+        return chat;
+      });
+
+      state.chats = updated_chats;
     },
 
     senderTyping: (state, action) => {
@@ -326,6 +229,9 @@ const chatSlice = createSlice({
     builder.addCase(getCurrentConversation.fulfilled, (state, action) => {
       state.currentChat = action.payload.conversation;
 
+      // reset currentMessages whenever a conversation is fetched
+      state.currentMessages = [];
+
       // update scrollBottom so that chat box auto scroll every time currentChat is updated (user opens another chat)
       state.scrollBottom++;
     });
@@ -333,7 +239,12 @@ const chatSlice = createSlice({
     builder.addCase(
       getConversationPaginatedMessages.fulfilled,
       (state, action) => {
-        state.pagination = action.payload.pagination;
+        let { conversation_messages, pagination } = action.payload;
+
+        const older_messages = conversation_messages.reverse();
+
+        state.pagination = pagination;
+        state.currentMessages = [...older_messages, ...state.currentMessages];
       }
     );
   },

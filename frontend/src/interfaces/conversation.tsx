@@ -6,7 +6,9 @@ export interface Conversation {
     _id: string;
     username: string;
   }[];
+  latestMsg: Message;
+  hasMsg: boolean;
+  seen?: boolean;
   createdAt: string;
   updatedAt: string;
-  latestMsg: Message;
 }
