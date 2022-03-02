@@ -21,7 +21,7 @@ const messageRoutes = require("./routes/message");
 
 // cross origin resource sharing
 const corsOptions = {
-  origin: config.appDomain,
+  origin: config.localDomain,
   credentials: true, //access-control-allow-credentials:true
 };
 app.use(cors(corsOptions));
@@ -44,7 +44,7 @@ app.use("/uploads", express.static(__dirname + "/uploads"));
 // routes registration
 app.use("/api/auth", authRoutes);
 
-// app.use(verifyJWT);
+app.use(verifyJWT);
 app.use("/api/conversation", conversationRoutes);
 app.use("/api/message", messageRoutes);
 
