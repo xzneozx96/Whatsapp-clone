@@ -165,35 +165,125 @@ export const ChatStyles = styled.div`
       }
     }
 
+    .reply_empty_space {
+      height: 0;
+      transition: 0.3s ease-in-out;
+
+      &.show {
+        height: 64px;
+      }
+    }
+
     footer {
-      z-index: 2;
       min-height: 60px;
-      background: #202c33;
-      display: flex;
+      z-index: 2;
       width: 100%;
-      padding: 0.75rem;
+      position: relative;
+      border-left: 1px solid rgba(134, 150, 160, 0.15);
 
-      i {
-        width: 40px;
-        height: 40px;
-        line-height: 40px;
-        cursor: pointer;
-        color: #8696a0;
-        text-align: center;
-        border-radius: 50%;
+      .send_msg {
+        display: flex;
+        z-index: 1;
+        position: relative;
+        padding: 0.75rem;
+        background: #202c33;
 
-        &:hover {
-          background-color: hsla(0, 0%, 100%, 0.1);
+        i {
+          width: 40px;
+          height: 40px;
+          line-height: 40px;
+          cursor: pointer;
+          color: #8696a0;
+          text-align: center;
+          border-radius: 50%;
+
+          &:hover {
+            background-color: hsla(0, 0%, 100%, 0.1);
+          }
+        }
+
+        .utils {
+          display: flex;
+          align-items: center;
+        }
+
+        .msg_input {
+          flex: 1;
         }
       }
 
-      .utils {
-        display: flex;
-        align-items: center;
+      .reply_wrapper {
+        margin-left: 1.5rem;
+
+        .reply_main {
+          margin-right: 1rem;
+          background: #111b21;
+        }
+      }
+    }
+  }
+`;
+
+export const ReplyStyles = styled.div`
+  .reply_msg {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding-top: 0.5rem;
+    bottom: 100%;
+    background: #202c33;
+    transition: 0.3s ease-in-out;
+    transform: translateY(100%);
+    z-index: 0;
+
+    &.replying {
+      transform: translateY(0%);
+    }
+
+    .cancel_reply {
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      cursor: pointer;
+      color: #8696a0;
+      text-align: center;
+      border-radius: 50%;
+      font-size: 2rem;
+      margin-right: 12px;
+
+      &:hover {
+        background-color: hsla(0, 0%, 100%, 0.1);
+      }
+    }
+  }
+
+  .reply_wrapper {
+    flex: 1;
+    display: flex;
+
+    .decorator {
+      border-top-left-radius: 5px;
+      border-bottom-left-radius: 5px;
+      background: #06cf9c;
+      width: 4px;
+    }
+
+    .reply_main {
+      padding: 6px 12px;
+      flex-grow: 1;
+      border-radius: 5px;
+      min-height: 56px;
+
+      .reply_to {
+        font-weight: 500;
+        color: #06cf9c;
       }
 
-      .msg_input {
-        flex: 1;
+      .replied_content {
+        color: hsla(0, 0%, 100%, 0.6);
+        max-width: 500px;
       }
     }
   }

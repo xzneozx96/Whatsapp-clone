@@ -3,24 +3,27 @@ import moment from "moment";
 import { Fragment, useState } from "react";
 import { ReactComponent as EmptyUploadIcon } from "../images/empty-upload.svg";
 import { ReactComponent as UnsentMsgIcon } from "../images/unsent-msg.svg";
-import { Message } from "../interfaces";
-import { SingleMessageStyles } from "../styles";
+import { Conversation, Message } from "../interfaces";
+import { SingleMessageStyles, ReplyStyles } from "../styles";
 import { useAppDispatch } from "../app/hooks";
 import { deleteForCurrentUser, unsend } from "../redux/async-thunks";
 import { Socket } from "socket.io-client";
 import { chatActions } from "../redux/chat-slice";
+import { getRepliedMember } from "../utils/hepler";
 
 export const SingleMessage: React.FC<{
   msg: Message;
   currentUser: { userId: string; username: string };
+  currentConversation: Conversation | null;
   receiver: { _id: string; username: string };
   socket: Socket | null;
-}> = ({ msg, currentUser, receiver, socket }) => {
+  onReply: (msg: Message) => void;
+}> = ({ msg, currentUser, currentConversation, receiver, socket, onReply }) => {
   const API_URL = "http://localhost:3500/";
 
   const dispatch = useAppDispatch();
 
-  const [onDeleteMsg, setOnDeleteMsg] = useState<Message>();
+  const [onActionMsg, setOnActionMsg] = useState<Message>();
 
   // this function hepls remove Date.now() value from filename created by backend
   const getFileNameForUI = (filename: string) => {
@@ -40,7 +43,7 @@ export const SingleMessage: React.FC<{
     // unsend a message
     if (getConfirmText().toLowerCase().includes("unsend")) {
       // 1. update UI
-      const result = await dispatch(unsend(onDeleteMsg?._id || "")).unwrap();
+      const result = await dispatch(unsend(onActionMsg?._id || "")).unwrap();
 
       // 2. notify socket server so that the other member notices there is a message gets unsent
       socket?.emit("unsendMsg", {
@@ -53,7 +56,7 @@ export const SingleMessage: React.FC<{
 
     // delete a message for me
     // 1. update UI
-    dispatch(chatActions.deleteForMe(onDeleteMsg));
+    dispatch(chatActions.deleteForMe(onActionMsg));
 
     // call api
     dispatch(
@@ -65,13 +68,13 @@ export const SingleMessage: React.FC<{
   };
 
   const closeModal = () => {
-    setOnDeleteMsg(undefined);
+    setOnActionMsg(undefined);
     Modal.destroyAll();
   };
 
   const getConfirmText = () => {
     // when user wants to delete his/her own message
-    if (currentUser.userId === onDeleteMsg?.senderId) {
+    if (currentUser.userId === onActionMsg?.senderId) {
       return "Unsend for everyone";
     }
 
@@ -98,7 +101,9 @@ export const SingleMessage: React.FC<{
 
   const actions = (
     <Menu>
-      <Menu.Item key="1">Reply</Menu.Item>
+      <Menu.Item key="1" onClick={() => onReply(onActionMsg!)}>
+        Reply
+      </Menu.Item>
       <Menu.Item key="2" onClick={() => confirmDelete()}>
         Delete
       </Menu.Item>
@@ -176,6 +181,23 @@ export const SingleMessage: React.FC<{
         {/* UI for showing sent messages  */}
         {msg.message.length > 0 && msg.sent && (
           <div className="chat_text">
+            {msg.replyTo && (
+              <ReplyStyles>
+                <div className="reply_wrapper">
+                  <span className="decorator"></span>
+                  <div className="reply_main">
+                    <div className="reply_to">
+                      {getRepliedMember(
+                        msg.replyTo.senderId,
+                        currentConversation
+                      )}
+                    </div>
+                    <div className="replied_content">{msg.replyTo.message}</div>
+                  </div>
+                </div>
+              </ReplyStyles>
+            )}
+
             <span className="msg_content">{msg.message}</span>
 
             <span className="msg_timestamp">
@@ -189,7 +211,7 @@ export const SingleMessage: React.FC<{
             >
               <i
                 className="bx bx-chevron-down actions_toggle"
-                onClick={() => setOnDeleteMsg(msg)}
+                onClick={() => setOnActionMsg(msg)}
               ></i>
             </Dropdown>
           </div>

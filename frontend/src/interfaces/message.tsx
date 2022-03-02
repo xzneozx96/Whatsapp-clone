@@ -9,5 +9,6 @@ export interface Message {
     fileName: string;
   }[];
   sent?: boolean;
+  replyTo?: Message;
   createdAt?: string;
 }

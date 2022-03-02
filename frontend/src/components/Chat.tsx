@@ -16,8 +16,9 @@ import {
   sendMsg,
 } from "../redux/async-thunks";
 import { chatActions } from "../redux/chat-slice";
-import { ChatStyles } from "../styles";
+import { ChatStyles, ReplyStyles } from "../styles";
 import { openInfoNotification } from "../utils/antdNoti";
+import { getRepliedMember } from "../utils/hepler";
 import { AssetsUpload } from "./AssetsUpload";
 import { SingleMessage } from "./SingleMessage";
 
@@ -37,6 +38,7 @@ export function Chat() {
   const [scrollUp, setScrollUp] = useState(0);
   const [uploadFileType, setUploadFileType] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [repliedMsg, setRepliedMsg] = useState<Message>();
 
   const user = useSelector((state: RootState) => state.authReducers.user);
   const socket = useSelector((state: RootState) => state.chatReducers.socket);
@@ -199,6 +201,7 @@ export function Chat() {
       conversationId: conversationId || "",
       senderId: user.userId || "",
       message: newMsg,
+      replyTo: repliedMsg,
     };
 
     const result = await dispatch(sendMsg(new_msg)).unwrap();
@@ -206,6 +209,7 @@ export function Chat() {
     // notify the socket server every time new message sent
     socket?.emit("sendMsg", {
       ...result.new_msg,
+      replyTo: repliedMsg,
       receiverId: receiver!._id,
     });
 
@@ -253,7 +257,7 @@ export function Chat() {
         conversationId,
       };
       socket?.emit("meTyping", typing_sender);
-
+      setRepliedMsg(undefined);
       return;
     }
   };
@@ -266,6 +270,10 @@ export function Chat() {
     setTimeout(() => {
       manualScroll(chatBodyRef.current.scrollHeight);
     }, 300);
+  };
+
+  const handleReplyMsg = (msg: Message) => {
+    setRepliedMsg(msg);
   };
 
   const menu = (
@@ -349,9 +357,11 @@ export function Chat() {
                 {currentMessages.map((msg) => (
                   <SingleMessage
                     currentUser={user}
+                    currentConversation={currentConversation}
                     receiver={receiver!}
                     socket={socket}
                     msg={msg}
+                    onReply={handleReplyMsg}
                     key={msg._id}
                   />
                 ))}
@@ -409,58 +419,85 @@ export function Chat() {
           )}
         </div>
 
+        <div className={`reply_empty_space ${repliedMsg ? "show" : ""}`}></div>
+
         {!uploading && (
           <footer>
-            <div className="utils">
-              <i
-                className="bx bx-smile"
-                onClick={() => {
-                  setShowEmojiPicker(!showEmojiPicker);
-                }}
-              ></i>
-              <Dropdown
-                // onVisibleChange={handleVisibleChange}
-                // visible={dropdownVisible}
-                overlay={menu}
-                trigger={["click"]}
-                placement="topCenter"
-                overlayClassName="upload_trigger"
-              >
-                <i className="bx bx-link-alt"></i>
-              </Dropdown>
-            </div>
-
-            {showEmojiPicker && (
-              <Picker
-                theme="dark"
-                title="Pick your emoji…"
-                emoji="point_up"
-                style={{
-                  position: "absolute",
-                  bottom: "64px",
-                  right: "0",
-                  width: "100%",
-                }}
-                onSelect={selectEmoji}
-              />
-            )}
-
-            <div className="msg_input">
-              <div className="input_field">
-                <input
-                  ref={msgInput}
-                  type="text"
-                  placeholder="Enter your message"
-                  className="form-control"
-                  onChange={(event: any) => {
-                    setNewMsg(event.target.value);
+            <div className="send_msg">
+              <div className="utils">
+                <i
+                  className="bx bx-smile"
+                  onClick={() => {
+                    setShowEmojiPicker(!showEmojiPicker);
                   }}
-                  onKeyUp={sendMsgOnEnter}
-                  value={newMsg}
-                />
+                ></i>
+                <Dropdown
+                  // onVisibleChange={handleVisibleChange}
+                  // visible={dropdownVisible}
+                  overlay={menu}
+                  trigger={["click"]}
+                  placement="topCenter"
+                  overlayClassName="upload_trigger"
+                >
+                  <i className="bx bx-link-alt"></i>
+                </Dropdown>
               </div>
-              <i className="bx bx-send" onClick={handleSendMsg}></i>
+
+              {showEmojiPicker && (
+                <Picker
+                  theme="dark"
+                  title="Pick your emoji…"
+                  emoji="point_up"
+                  style={{
+                    position: "absolute",
+                    bottom: "64px",
+                    right: "0",
+                    width: "100%",
+                  }}
+                  onSelect={selectEmoji}
+                />
+              )}
+
+              <div className="msg_input">
+                <div className="input_field">
+                  <input
+                    ref={msgInput}
+                    type="text"
+                    placeholder="Enter your message"
+                    className="form-control"
+                    onChange={(event: any) => {
+                      setNewMsg(event.target.value);
+                    }}
+                    onKeyUp={sendMsgOnEnter}
+                    value={newMsg}
+                  />
+                </div>
+                <i className="bx bx-send" onClick={handleSendMsg}></i>
+              </div>
             </div>
+
+            <ReplyStyles>
+              <div className={`reply_msg ${repliedMsg ? "replying" : ""}`}>
+                <div className="reply_wrapper">
+                  <span className="decorator"></span>
+                  <div className="reply_main">
+                    <div className="reply_to">
+                      {repliedMsg &&
+                        getRepliedMember(
+                          repliedMsg.senderId,
+                          currentConversation
+                        )}
+                    </div>
+                    <div className="replied_content">{repliedMsg?.message}</div>
+                  </div>
+                </div>
+
+                <i
+                  className="bx bx-x cancel_reply"
+                  onClick={() => setRepliedMsg(undefined)}
+                ></i>
+              </div>
+            </ReplyStyles>
           </footer>
         )}
       </div>

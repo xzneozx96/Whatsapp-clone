@@ -54,6 +54,7 @@ export function useSocket(currentUserId: string, dispatch: any) {
             message,
             files,
             sent,
+            replyTo,
             createdAt,
           }) => {
             dispatch(
@@ -64,6 +65,7 @@ export function useSocket(currentUserId: string, dispatch: any) {
                 message,
                 files,
                 sent,
+                replyTo,
                 createdAt,
                 currentUserId,
               })

@@ -69,6 +69,7 @@ const socketServer = (server) => {
         receiverId,
         message,
         files,
+        replyTo,
         createdAt,
       }) => {
         const members = [users.get(senderId), users.get(receiverId)];
@@ -84,6 +85,7 @@ const socketServer = (server) => {
               message,
               files,
               sent: true,
+              replyTo,
               createdAt,
             });
           });

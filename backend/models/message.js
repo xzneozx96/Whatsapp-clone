@@ -33,6 +33,10 @@ const MessageSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    replyTo: {
+      type: String,
+      ref: "message", // define ref to the same schema
+    },
   },
   { timestamps: true }
 );

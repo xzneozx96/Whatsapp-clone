@@ -20,6 +20,12 @@ export const SingleMessageStyles = styled.div`
             rgba(0, 92, 75, 0) 80%
           );
         }
+
+        .reply_wrapper {
+          .reply_main {
+            background: #005043;
+          }
+        }
       }
 
       .chat_files {
@@ -86,6 +92,14 @@ export const SingleMessageStyles = styled.div`
 
       &:hover .actions_toggle {
         opacity: 1;
+      }
+
+      .reply_wrapper {
+        margin-bottom: 5px;
+
+        .reply_main {
+          background: #18252c;
+        }
       }
     }
 

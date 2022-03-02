@@ -65,8 +65,6 @@ const myConversations = async (req, res) => {
         });
       });
 
-      console.log(my_conversations);
-
       return res.status(200).json({
         my_conversations,
       });

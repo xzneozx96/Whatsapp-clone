@@ -6,7 +6,7 @@ const User = require("../models/user");
 const newMessage = async (req, res) => {
   try {
     // create new message
-    const { conversationId, senderId, message } = req.body;
+    const { conversationId, senderId, message, replyTo } = req.body;
 
     const files =
       req.files?.map((file) => ({
@@ -20,6 +20,7 @@ const newMessage = async (req, res) => {
       senderId,
       message,
       files,
+      replyTo: replyTo?._id,
     });
 
     await new_msg.save();
@@ -100,7 +101,8 @@ const conversationPaginatedMessages = async (req, res) => {
     })
       .sort({ $natural: -1 }) // fetch latest messages
       .skip((page - 1) * messages_per_page) // ignore items from previous page
-      .limit(messages_per_page); // ignore items from next page
+      .limit(messages_per_page)
+      .populate("replyTo");
 
     return res.status(200).json({
       conversation_messages: paginated_messages,
