@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
-import { useAppDispatch } from "../app/hooks";
-import { RootState } from "../app/store";
-import { logout } from "../redux/auth-slice";
-import { SidebarStyles } from "../styles";
-import { NewConversationModal } from "./NewConversationModal";
+import { useAppDispatch } from "../../app/hooks";
+import { RootState } from "../../app/store";
+import { logout } from "../../redux/auth-slice";
+import { SidebarStyles } from "../../styles";
+import { NewConversationModal } from "../conversation/NewConversationModal";
 import { SidebarChat } from "./SidebarChat";
+import { List, Skeleton } from "antd";
 
 export function Sidebar() {
   const dispatch = useAppDispatch();
@@ -76,20 +77,33 @@ export function Sidebar() {
       </div>
 
       <div className="sidebar_chats">
-        {conversations &&
-          conversations.map(
-            (c) =>
-              c.hasMsg && (
-                <NavLink
-                  className={({ isActive }) => (isActive ? "highlighted" : "")}
-                  key={c._id}
-                  to={c._id}
-                  // onClick={() => dispatch(chatActions.conversationSeen())}
-                >
-                  <SidebarChat conversation={c} />
-                </NavLink>
-              )
-          )}
+        {conversations.length === 0 && (
+          <List itemLayout="vertical" size="large">
+            <List.Item key={1}>
+              <Skeleton active avatar></Skeleton>
+            </List.Item>
+            <List.Item key={2}>
+              <Skeleton active avatar></Skeleton>
+            </List.Item>
+            <List.Item key={3}>
+              <Skeleton active avatar></Skeleton>
+            </List.Item>
+          </List>
+        )}
+
+        {conversations.map(
+          (c) =>
+            c.hasMsg && (
+              <NavLink
+                className={({ isActive }) => (isActive ? "highlighted" : "")}
+                key={c._id}
+                to={c._id}
+                // onClick={() => dispatch(chatActions.conversationSeen())}
+              >
+                <SidebarChat conversation={c} />
+              </NavLink>
+            )
+        )}
       </div>
 
       {showNewConversationModal && (

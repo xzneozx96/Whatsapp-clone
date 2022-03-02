@@ -35,6 +35,15 @@ export const SingleMessageStyles = styled.div`
     }
   }
 
+  &.glowing {
+    .chat_text {
+      animation-name: glowing;
+      animation-delay: 1s;
+      animation-duration: 1s;
+      animation-timing-function: cubic-bezier(0.24, 0.91, 0.01, 0.99);
+    }
+  }
+
   .chat_msg {
     margin-bottom: 5px;
     border-radius: 4px;
@@ -96,6 +105,7 @@ export const SingleMessageStyles = styled.div`
 
       .reply_wrapper {
         margin-bottom: 5px;
+        cursor: pointer;
 
         .reply_main {
           background: #18252c;
@@ -129,5 +139,11 @@ export const SingleMessageStyles = styled.div`
 
   &:last-child {
     margin-bottom: 12px;
+  }
+
+  @keyframes glowing {
+    50% {
+      filter: brightness(1.3) contrast(0.85);
+    }
   }
 `;

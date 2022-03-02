@@ -1,9 +1,9 @@
 import moment from "moment";
 import { useSelector } from "react-redux";
-import { RootState } from "../app/store";
-import { ReactComponent as UnsentMsgIcon } from "../images/unsent-msg.svg";
-import { Conversation } from "../interfaces/conversation";
-import { SidebarChatStyles } from "../styles";
+import { RootState } from "../../app/store";
+import { ReactComponent as UnsentMsgIcon } from "../../images/unsent-msg.svg";
+import { Conversation } from "../../interfaces/conversation";
+import { SidebarChatStyles } from "../../styles";
 
 export const SidebarChat: React.FC<{
   conversation: Conversation;

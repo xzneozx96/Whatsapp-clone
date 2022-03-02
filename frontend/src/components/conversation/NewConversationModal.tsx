@@ -1,9 +1,9 @@
 import { Avatar, Modal } from "antd";
 import { useState, useRef, useEffect } from "react";
-import { useAppDispatch } from "../app/hooks";
-import { User } from "../interfaces";
-import { newConversation, searchUsers } from "../redux/async-thunks";
-import { NewConversationModalStyles } from "../styles";
+import { useAppDispatch } from "../../app/hooks";
+import { User } from "../../interfaces";
+import { newConversation, searchUsers } from "../../redux/async-thunks";
+import { NewConversationModalStyles } from "../../styles";
 import { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 

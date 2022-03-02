@@ -4,21 +4,21 @@ import "emoji-mart/css/emoji-mart.css";
 import { Fragment, RefObject, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { useAppDispatch } from "../app/hooks";
-import { RootState } from "../app/store";
-import { ReactComponent as AssetUploadIcon } from "../images/asset-upload.svg";
-import { ReactComponent as FileUploadIcon } from "../images/file-upload.svg";
-import { Message } from "../interfaces/message";
+import { useAppDispatch } from "../../app/hooks";
+import { RootState } from "../../app/store";
+import { ReactComponent as AssetUploadIcon } from "../../images/asset-upload.svg";
+import { ReactComponent as FileUploadIcon } from "../../images/file-upload.svg";
+import { Message } from "../../interfaces/message";
 import {
   getConversationPaginatedMessages,
   getCurrentConversation,
   markConversationSeen,
   sendMsg,
-} from "../redux/async-thunks";
-import { chatActions } from "../redux/chat-slice";
-import { ChatStyles, ReplyStyles } from "../styles";
-import { openInfoNotification } from "../utils/antdNoti";
-import { getRepliedMember } from "../utils/hepler";
+} from "../../redux/async-thunks";
+import { chatActions } from "../../redux/chat-slice";
+import { ChatStyles, ReplyStyles } from "../../styles";
+import { openInfoNotification } from "../../utils/antdNoti";
+import { getRepliedMember } from "../../utils/hepler";
 import { AssetsUpload } from "./AssetsUpload";
 import { SingleMessage } from "./SingleMessage";
 
@@ -68,6 +68,9 @@ export function Chat() {
   );
 
   useEffect(() => {
+    // auto focus the input field
+    msgInput.current?.focus();
+
     // mark a conversation as seen when user clicks on it => update UI
     dispatch(chatActions.conversationSeen());
 
@@ -80,7 +83,7 @@ export function Chat() {
         })
       );
     }
-  });
+  }, [dispatch, currentConversation, user]);
 
   useEffect(() => {
     dispatch(getCurrentConversation(conversationId || ""));
@@ -274,6 +277,9 @@ export function Chat() {
 
   const handleReplyMsg = (msg: Message) => {
     setRepliedMsg(msg);
+
+    // auto focus the input field when reply box is opened
+    msgInput.current?.focus();
   };
 
   const menu = (
@@ -494,7 +500,12 @@ export function Chat() {
 
                 <i
                   className="bx bx-x cancel_reply"
-                  onClick={() => setRepliedMsg(undefined)}
+                  onClick={() => {
+                    setRepliedMsg(undefined);
+
+                    // auto focus the input field when reply box is closed
+                    msgInput.current?.focus();
+                  }}
                 ></i>
               </div>
             </ReplyStyles>

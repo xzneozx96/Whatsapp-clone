@@ -1,5 +1,5 @@
-import { IntroStyles } from "../styles";
-import introImg from "../images/intro.jpg";
+import { IntroStyles } from "../../styles";
+import introImg from "../../images/intro.jpg";
 
 export function Intro() {
   return (

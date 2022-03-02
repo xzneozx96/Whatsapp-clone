@@ -1,15 +1,15 @@
 import { Dropdown, Image, Menu, Modal } from "antd";
 import moment from "moment";
 import { Fragment, useState } from "react";
-import { ReactComponent as EmptyUploadIcon } from "../images/empty-upload.svg";
-import { ReactComponent as UnsentMsgIcon } from "../images/unsent-msg.svg";
-import { Conversation, Message } from "../interfaces";
-import { SingleMessageStyles, ReplyStyles } from "../styles";
-import { useAppDispatch } from "../app/hooks";
-import { deleteForCurrentUser, unsend } from "../redux/async-thunks";
 import { Socket } from "socket.io-client";
-import { chatActions } from "../redux/chat-slice";
-import { getRepliedMember } from "../utils/hepler";
+import { useAppDispatch } from "../../app/hooks";
+import { ReactComponent as EmptyUploadIcon } from "../../images/empty-upload.svg";
+import { ReactComponent as UnsentMsgIcon } from "../../images/unsent-msg.svg";
+import { Conversation, Message } from "../../interfaces";
+import { deleteForCurrentUser, unsend } from "../../redux/async-thunks";
+import { chatActions } from "../../redux/chat-slice";
+import { ReplyStyles, SingleMessageStyles } from "../../styles";
+import { getRepliedMember } from "../../utils/hepler";
 
 export const SingleMessage: React.FC<{
   msg: Message;
@@ -110,9 +110,18 @@ export const SingleMessage: React.FC<{
     </Menu>
   );
 
+  const handleScrollToReplied = (msgId: string) => {
+    const msg_element = document.getElementById(msgId);
+
+    msg_element?.classList.add("glowing");
+
+    msg_element?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   return (
     <SingleMessageStyles
       className={msg.senderId === currentUser.userId ? "me" : ""}
+      id={msg._id}
     >
       <div className="chat_msg">
         {/* UI for messages that contain files */}
@@ -183,7 +192,12 @@ export const SingleMessage: React.FC<{
           <div className="chat_text">
             {msg.replyTo && (
               <ReplyStyles>
-                <div className="reply_wrapper">
+                <div
+                  className="reply_wrapper"
+                  onClick={() => {
+                    handleScrollToReplied(msg.replyTo?._id!);
+                  }}
+                >
                   <span className="decorator"></span>
                   <div className="reply_main">
                     <div className="reply_to">

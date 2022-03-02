@@ -260,3 +260,20 @@ button:focus {
   align-items: center;
   justify-content: center;
 }
+
+/* antd skeleton */
+.ant-skeleton-title {
+  display: none;
+}
+
+.ant-skeleton-with-avatar
+  .ant-skeleton-content
+  .ant-skeleton-title
+  + .ant-skeleton-paragraph {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.ant-list-lg .ant-list-item {
+  padding: 16px;
+}

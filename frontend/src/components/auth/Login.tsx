@@ -1,9 +1,9 @@
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Form, Input } from "antd";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch } from "../app/hooks";
-import { login } from "../redux/auth-slice";
-import { openErrNotification } from "../utils/antdNoti";
+import { useAppDispatch } from "../../app/hooks";
+import { login } from "../../redux/auth-slice";
+import { openErrNotification } from "../../utils/antdNoti";
 
 export const LoginPage = () => {
   const dispatch = useAppDispatch();

@@ -1,11 +1,11 @@
 import { useLocation, Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { RootState } from "../app/store";
+import { RootState } from "../../app/store";
 
 export const RequireAuth = () => {
   const is_logged_in = useSelector((state: RootState) => {
     return state.authReducers.isLoggedIn;
-  });  
+  });
 
   const location = useLocation();
 

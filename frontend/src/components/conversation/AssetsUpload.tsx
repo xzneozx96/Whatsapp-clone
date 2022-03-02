@@ -1,12 +1,12 @@
 import { Upload } from "antd";
 import { Fragment, useState } from "react";
 import { useSelector } from "react-redux";
-import { useAppDispatch } from "../app/hooks";
-import { RootState } from "../app/store";
-import { ReactComponent as EmptyUploadIcon } from "../images/empty-upload.svg";
-import { Conversation, Message } from "../interfaces";
-import { sendFiles } from "../redux/async-thunks";
-import { AssetsUploadStyles } from "../styles";
+import { useAppDispatch } from "../../app/hooks";
+import { RootState } from "../../app/store";
+import { ReactComponent as EmptyUploadIcon } from "../../images/empty-upload.svg";
+import { Conversation, Message } from "../../interfaces";
+import { sendFiles } from "../../redux/async-thunks";
+import { AssetsUploadStyles } from "../../styles";
 
 export const AssetsUpload: React.FC<{
   currentConversation: Conversation | null;
