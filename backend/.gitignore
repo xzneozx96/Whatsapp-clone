@@ -13,6 +13,7 @@
 
 # assets
 /uploads
+/functions
 
 # misc
 .DS_Store
