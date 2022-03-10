@@ -1,17 +1,17 @@
 import { Dropdown, Image, Menu, Modal } from "antd";
 import moment from "moment";
-import { Fragment, useState } from "react";
+import React, { Fragment, useState } from "react";
 import { Socket } from "socket.io-client";
-import { useAppDispatch } from "../../app/hooks";
-import { ReactComponent as EmptyUploadIcon } from "../../images/empty-upload.svg";
-import { ReactComponent as UnsentMsgIcon } from "../../images/unsent-msg.svg";
-import { Conversation, Message } from "../../interfaces";
-import { deleteForCurrentUser, unsend } from "../../redux/async-thunks";
-import { chatActions } from "../../redux/chat-slice";
-import { ReplyStyles, SingleMessageStyles } from "../../styles";
-import { getRepliedMember } from "../../utils/hepler";
+import { useAppDispatch } from "app/hooks";
+import { ReactComponent as EmptyUploadIcon } from "images/empty-upload.svg";
+import { ReactComponent as UnsentMsgIcon } from "images/unsent-msg.svg";
+import { Conversation, Message } from "interfaces";
+import { deleteForCurrentUser, unsend } from "redux/async-thunks";
+import { chatActions } from "redux/chat-slice";
+import { ReplyStyles, SingleMessageStyles } from "styles";
+import { getRepliedMember } from "utils/hepler";
 
-export const SingleMessage: React.FC<{
+const FnSingleMessage: React.FC<{
   msg: Message;
   currentUser: { userId: string; username: string };
   currentConversation: Conversation | null;
@@ -20,6 +20,8 @@ export const SingleMessage: React.FC<{
   onReply: (msg: Message) => void;
 }> = ({ msg, currentUser, currentConversation, receiver, socket, onReply }) => {
   const API_URL = "http://localhost:3500/";
+
+  console.log('SingleMessage: Re-rendering')
 
   const dispatch = useAppDispatch();
 
@@ -254,3 +256,5 @@ export const SingleMessage: React.FC<{
     </SingleMessageStyles>
   );
 };
+
+export const SingleMessage = React.memo(FnSingleMessage)

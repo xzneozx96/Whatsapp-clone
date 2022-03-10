@@ -4,21 +4,21 @@ import "emoji-mart/css/emoji-mart.css";
 import { Fragment, RefObject, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { useAppDispatch } from "../../app/hooks";
-import { RootState } from "../../app/store";
-import { ReactComponent as AssetUploadIcon } from "../../images/asset-upload.svg";
-import { ReactComponent as FileUploadIcon } from "../../images/file-upload.svg";
-import { Message } from "../../interfaces/message";
+import { useAppDispatch } from "app/hooks";
+import { RootState } from "app/store";
+import { ReactComponent as AssetUploadIcon } from "images/asset-upload.svg";
+import { ReactComponent as FileUploadIcon } from "images/file-upload.svg";
+import { Message } from "interfaces/message";
 import {
   getConversationPaginatedMessages,
   getCurrentConversation,
   markConversationSeen,
   sendMsg,
-} from "../../redux/async-thunks";
-import { chatActions } from "../../redux/chat-slice";
-import { ChatStyles, ReplyStyles } from "../../styles";
-import { openInfoNotification } from "../../utils/antdNoti";
-import { getRepliedMember } from "../../utils/hepler";
+} from "redux/async-thunks";
+import { chatActions } from "redux/chat-slice";
+import { ChatStyles, ReplyStyles } from "styles";
+import { openInfoNotification } from "utils/antdNoti";
+import { getRepliedMember } from "utils/hepler";
 import { AssetsUpload } from "./AssetsUpload";
 import { SingleMessage } from "./SingleMessage";
 
@@ -30,7 +30,6 @@ export function Chat() {
   const msgInput = useRef() as RefObject<HTMLInputElement>;
   const chatBodyRef = useRef() as React.MutableRefObject<HTMLDivElement>;
 
-  const [messages, setMessages] = useState<Message[]>([]);
   const [newMsg, setNewMsg] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
@@ -57,6 +56,7 @@ export function Chat() {
   const scrollBottom = useSelector(
     (state: RootState) => state.chatReducers.scrollBottom
   );
+
   const senderTyping = useSelector(
     (state: RootState) => state.chatReducers.senderTyping
   );
@@ -178,7 +178,7 @@ export function Chat() {
     // fetch old messages with infinite scroll
     if (scrollTop === 0 && pagination?.hasNextPage) {
       setShowLoading(true);
-
+      setScrollUp(scrollUp + 1);
       dispatch(
         getConversationPaginatedMessages({
           currentUserId: user.userId,
@@ -195,7 +195,7 @@ export function Chat() {
           setScrollUp(scrollUp + 1);
         });
     } else {
-      return;
+      return
     }
   };
 
@@ -263,16 +263,6 @@ export function Chat() {
       setRepliedMsg(undefined);
       return;
     }
-  };
-
-  // this function gets executed after users send files successfully from AssetUpload component
-  const updateMessagesWithNewFilesArrival = (new_msg: Message) => {
-    setMessages([...messages, new_msg]);
-
-    // wait for UI to update then scroll to bottom once users finish uploading then get redirect to chat messages
-    setTimeout(() => {
-      manualScroll(chatBodyRef.current.scrollHeight);
-    }, 300);
   };
 
   const handleReplyMsg = (msg: Message) => {
@@ -411,9 +401,6 @@ export function Chat() {
               <AssetsUpload
                 onClose={() => {
                   setUploading(false);
-                }}
-                fileSent={(new_msg: Message) => {
-                  updateMessagesWithNewFilesArrival(new_msg);
                 }}
                 senderId={user.userId}
                 receiverId={receiver?._id || ""}

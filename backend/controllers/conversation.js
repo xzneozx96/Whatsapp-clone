@@ -8,8 +8,10 @@ const newConversation = async (req, res) => {
 
     // if there has already a conversation whose members includes both sender and receiver, we will not create a new one and simple the duplicated conversation
     const duplicated_conversation = await Conversation.findOne({
-      members: [senderId, receiverId],
+      members: { $all : [senderId, receiverId]},
     });
+
+    console.log(senderId,receiverId, duplicated_conversation)
 
     if (duplicated_conversation) {
       return res.status(201).json({
@@ -114,12 +116,12 @@ const getSingleConversation = async (req, res) => {
 
 const searchUsers = async (req, res) => {
   try {
-    const { searchName } = req.body;
+    const { searchName, currentUserId } = req.body;
 
     let users;
 
     if (searchName.length === 0) {
-      users = await User.find({}).limit(5).select("username");
+      users = await User.find({_id: { $ne: currentUserId }}).limit(5).select("username");
     } else {
       users = await User.find({
         username: { $regex: searchName, $options: "i" },
@@ -130,6 +132,7 @@ const searchUsers = async (req, res) => {
       users,
     });
   } catch (err) {
+    console.log(err)
     return res.status(500).json({
       success: false,
       msg: "No users found due to internal server error. Please try again later !",

@@ -1,13 +1,15 @@
 import moment from "moment";
 import { useSelector } from "react-redux";
-import { RootState } from "../../app/store";
-import { ReactComponent as UnsentMsgIcon } from "../../images/unsent-msg.svg";
-import { Conversation } from "../../interfaces/conversation";
-import { SidebarChatStyles } from "../../styles";
+import { RootState } from "app/store";
+import { ReactComponent as UnsentMsgIcon } from "images/unsent-msg.svg";
+import { Conversation } from "interfaces/conversation";
+import { SidebarChatStyles } from "styles";
+import React from "react";
 
-export const SidebarChat: React.FC<{
+const FnSidebarChat: React.FC<{
   conversation: Conversation;
 }> = ({ conversation }) => {
+  console.log('SidebarChat: Re-rendering', conversation)
   const user = useSelector((state: RootState) => state.authReducers.user);
 
   const online_friends = useSelector(
@@ -91,3 +93,5 @@ export const SidebarChat: React.FC<{
     </SidebarChatStyles>
   );
 };
+
+export const SidebarChat = React.memo(FnSidebarChat);

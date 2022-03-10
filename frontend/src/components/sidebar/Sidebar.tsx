@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
-import { useAppDispatch } from "../../app/hooks";
-import { RootState } from "../../app/store";
-import { logout } from "../../redux/auth-slice";
-import { SidebarStyles } from "../../styles";
-import { NewConversationModal } from "../conversation/NewConversationModal";
+import { useAppDispatch } from "app/hooks";
+import { RootState } from "app/store";
+import { logout } from "redux/auth-slice";
+import { SidebarStyles } from "styles";
+import { NewConversationModal } from "components/conversation/NewConversationModal";
 import { SidebarChat } from "./SidebarChat";
 import { List, Skeleton } from "antd";
 

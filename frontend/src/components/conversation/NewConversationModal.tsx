@@ -1,9 +1,9 @@
 import { Avatar, Modal } from "antd";
 import { useState, useRef, useEffect } from "react";
-import { useAppDispatch } from "../../app/hooks";
-import { User } from "../../interfaces";
-import { newConversation, searchUsers } from "../../redux/async-thunks";
-import { NewConversationModalStyles } from "../../styles";
+import { useAppDispatch } from "app/hooks";
+import { User } from "interfaces";
+import { newConversation, searchUsers } from "redux/async-thunks";
+import { NewConversationModalStyles } from "styles";
 import { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 
@@ -20,12 +20,12 @@ export const NewConversationModal: React.FC<{
   const debouncer = useRef<any>(); // value held by ref won't be clear when component re-renders
 
   useEffect(() => {
-    dispatch(searchUsers(""))
+    dispatch(searchUsers({searchName: "", currentUserId: props.currentUser.userId}))
       .unwrap()
       .then((result) => {
         setMembers(result.users);
       });
-  }, [dispatch]);
+  }, [dispatch, props.currentUser]);
 
   const handleOk = () => {
     setIsModalVisible(false);
@@ -43,7 +43,10 @@ export const NewConversationModal: React.FC<{
     if (debouncer.current) clearTimeout(debouncer.current);
 
     debouncer.current = setTimeout(async () => {
-      const result = await dispatch(searchUsers(search_value)).unwrap();
+      const result = await dispatch(searchUsers({
+        searchName: search_value,
+        currentUserId: props.currentUser.userId
+      })).unwrap();
 
       setMembers(result.users);
     }, 400);

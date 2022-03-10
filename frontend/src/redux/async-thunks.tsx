@@ -1,6 +1,6 @@
-import api from "../api";
+import api from "api";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { Conversation, Message, Pagination, User } from "../interfaces";
+import { Conversation, Message, Pagination, User } from "interfaces";
 
 export const newConversation = createAsyncThunk(
   "chats/newConversation",
@@ -105,11 +105,11 @@ export const sendFiles = createAsyncThunk(
 
 export const searchUsers = createAsyncThunk(
   "chats/searchUsers",
-  async (searchName: string, { rejectWithValue }) => {
+  async (payload: {searchName: string, currentUserId: string}, { rejectWithValue }) => {
     try {
       const res = await api.post<{ users: User[] }>(
         "conversation/search-users",
-        { searchName }
+        { ...payload }
       );
 
       return { users: res.data.users };

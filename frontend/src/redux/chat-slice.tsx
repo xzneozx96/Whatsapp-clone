@@ -1,11 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { Socket } from "socket.io-client";
-import { Conversation, Message, Pagination } from "../interfaces";
+import { Conversation, Message, Pagination } from "interfaces";
 import {
   getConversationPaginatedMessages,
   getCurrentConversation,
   getMyConversations,
-} from "./async-thunks";
+} from "redux/async-thunks";
 interface ChatState {
   socket: Socket | null;
   currentChat: Conversation | null;
@@ -232,7 +232,7 @@ const chatSlice = createSlice({
       // reset currentMessages whenever a conversation is fetched
       state.currentMessages = [];
 
-      // update scrollBottom so that chat box auto scroll every time currentChat is updated (user opens another chat)
+      // update scrollBottom so that chat box auto scroll every time currentChat is updated (user visits a chat)
       state.scrollBottom++;
     });
 

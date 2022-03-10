@@ -175,7 +175,7 @@ const socketServer = (server) => {
 
           // notify this user's friend that he/she is now offline
           for (let i = 0; i < chatters.length; i++) {
-            if (users.has(chatters[i]._id.toString())) {
+            if (users.has(chatters[i]?._id.toString())) {
               const chatter = users.get(chatters[i]._id.toString());
 
               chatter.sockets.forEach((socketId) => {
