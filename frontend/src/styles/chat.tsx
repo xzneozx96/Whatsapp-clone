@@ -98,10 +98,18 @@ export const ChatStyles = styled.div`
         line-height: 58px;
         text-align: center;
         background-color: #202c33;
+        transition: all 0.3s ease-in-out;
+        opacity: 0;
+        pointer-events: none;
 
         i {
           font-size: 2rem;
           color: #798287;
+        }
+
+        &.visible {
+          opacity: 1;
+          pointer-events: all;
         }
       }
 

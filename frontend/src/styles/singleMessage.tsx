@@ -75,7 +75,7 @@ export const SingleMessageStyles = styled.div`
         float: right;
         margin: 7px 0 -5px 10px;
         color: hsla(0, 0%, 100%, 0.6);
-        font-size: 11px;
+        font-size: 12px;
       }
 
       .actions_toggle {

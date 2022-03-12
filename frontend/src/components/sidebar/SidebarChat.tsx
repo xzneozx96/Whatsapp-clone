@@ -9,7 +9,6 @@ import React from "react";
 const FnSidebarChat: React.FC<{
   conversation: Conversation;
 }> = ({ conversation }) => {
-  console.log('SidebarChat: Re-rendering', conversation)
   const user = useSelector((state: RootState) => state.authReducers.user);
 
   const online_friends = useSelector(

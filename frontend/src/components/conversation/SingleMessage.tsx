@@ -21,7 +21,7 @@ const FnSingleMessage: React.FC<{
 }> = ({ msg, currentUser, currentConversation, receiver, socket, onReply }) => {
   const API_URL = "http://localhost:3500/";
 
-  console.log('SingleMessage: Re-rendering')
+  console.log("SingleMessage: Re-rendering");
 
   const dispatch = useAppDispatch();
 
@@ -257,4 +257,4 @@ const FnSingleMessage: React.FC<{
   );
 };
 
-export const SingleMessage = React.memo(FnSingleMessage)
+export const SingleMessage = React.memo(FnSingleMessage);

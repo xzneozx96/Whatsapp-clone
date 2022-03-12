@@ -1,14 +1,21 @@
 import { Dropdown, Menu, Tooltip } from "antd";
-import { Picker } from "emoji-mart";
-import "emoji-mart/css/emoji-mart.css";
-import { Fragment, RefObject, useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
 import { useAppDispatch } from "app/hooks";
 import { RootState } from "app/store";
+import { Picker } from "emoji-mart";
+import "emoji-mart/css/emoji-mart.css";
 import { ReactComponent as AssetUploadIcon } from "images/asset-upload.svg";
 import { ReactComponent as FileUploadIcon } from "images/file-upload.svg";
 import { Message } from "interfaces/message";
+import React, {
+  Fragment,
+  RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 import {
   getConversationPaginatedMessages,
   getCurrentConversation,
@@ -22,17 +29,16 @@ import { getRepliedMember } from "utils/hepler";
 import { AssetsUpload } from "./AssetsUpload";
 import { SingleMessage } from "./SingleMessage";
 
-export function Chat() {
+function FnChat() {
   const dispatch = useAppDispatch();
 
   const conversationId = useParams<string>()?.conversationId || "";
 
   const msgInput = useRef() as RefObject<HTMLInputElement>;
   const chatBodyRef = useRef() as React.MutableRefObject<HTMLDivElement>;
+  const scrollBottomBtnRef = useRef() as React.MutableRefObject<HTMLDivElement>;
 
-  const [newMsg, setNewMsg] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [loading, setShowLoading] = useState(false);
   const [scrollUp, setScrollUp] = useState(0);
   const [uploadFileType, setUploadFileType] = useState("");
@@ -56,7 +62,6 @@ export function Chat() {
   const scrollBottom = useSelector(
     (state: RootState) => state.chatReducers.scrollBottom
   );
-
   const senderTyping = useSelector(
     (state: RootState) => state.chatReducers.senderTyping
   );
@@ -67,9 +72,11 @@ export function Chat() {
     (mem) => mem._id !== user.userId
   );
 
+  console.log("Chat is re-rendered");
+
   useEffect(() => {
     // auto focus the input field
-    msgInput.current?.focus();
+    msgInput.current!.focus();
 
     // mark a conversation as seen when user clicks on it => update UI
     dispatch(chatActions.conversationSeen());
@@ -143,19 +150,18 @@ export function Chat() {
 
   const selectEmoji = (emoji: any) => {
     const starting_point = msgInput.current!.selectionStart || 0;
-    const ending_point = msgInput.current?.selectionEnd || 0;
+    const ending_point = msgInput.current!.selectionEnd || 0;
 
     const emoji_length = emoji.native.length;
-    const msgInput_value = msgInput.current?.value;
+    const msgInput_value = msgInput.current!.value;
 
-    setNewMsg(
+    msgInput.current!.value =
       msgInput_value?.substring(0, starting_point) +
-        emoji.native +
-        msgInput_value?.substring(ending_point, msgInput_value.length)
-    );
+      emoji.native +
+      msgInput_value?.substring(ending_point, msgInput_value.length);
 
     // re-focus on the input field after selecting an emoji
-    msgInput.current?.focus();
+    msgInput.current!.focus();
 
     // set cursor to the end of the message
     msgInput.current!.selectionEnd = emoji_length + ending_point;
@@ -170,9 +176,9 @@ export function Chat() {
 
     // show "scroll-to-bottom" button
     if (scrollTop + clientHeight < scrollHeight - 50) {
-      setShowScrollBottom(true);
+      scrollBottomBtnRef.current.classList.add("visible");
     } else {
-      setShowScrollBottom(false);
+      scrollBottomBtnRef.current.classList.remove("visible");
     }
 
     // fetch old messages with infinite scroll
@@ -195,11 +201,13 @@ export function Chat() {
           setScrollUp(scrollUp + 1);
         });
     } else {
-      return
+      return;
     }
   };
 
   const handleSendMsg = async () => {
+    const newMsg = msgInput.current!.value;
+
     const new_msg = {
       conversationId: conversationId || "",
       senderId: user.userId || "",
@@ -216,7 +224,8 @@ export function Chat() {
       receiverId: receiver!._id,
     });
 
-    setNewMsg("");
+    msgInput.current!.value = "";
+
     setShowEmojiPicker(false);
     manualScroll(chatBodyRef.current.scrollHeight);
   };
@@ -227,7 +236,7 @@ export function Chat() {
       (mem) => mem._id !== user.userId
     );
 
-    const msgInput_value = msgInput.current?.value;
+    const msgInput_value = msgInput.current!.value;
 
     if (msgInput_value!.length > 0) {
       const typing_sender = {
@@ -250,9 +259,11 @@ export function Chat() {
     }
 
     // send message when press enter
-    if (newMsg.length > 0 && event.code === "Enter") {
+    if (msgInput_value.length > 0 && event.code === "Enter") {
       handleSendMsg();
-      setNewMsg("");
+
+      msgInput.current!.value = "";
+
       const typing_sender = {
         sender: user.username,
         receiverId: receiver?._id,
@@ -265,12 +276,13 @@ export function Chat() {
     }
   };
 
-  const handleReplyMsg = (msg: Message) => {
+  // since the below function is used as prop in the SingleMessage component, we need to use useCallback hook to prevent re-rendering when the Chat component gets re-rendered when user spams a route
+  const handleReplyMsg = useCallback((msg: Message) => {
     setRepliedMsg(msg);
 
     // auto focus the input field when reply box is opened
-    msgInput.current?.focus();
-  };
+    msgInput.current!.focus();
+  }, []);
 
   const menu = (
     <Menu>
@@ -374,16 +386,15 @@ export function Chat() {
                   )}
               </div>
 
-              {showScrollBottom && (
-                <div
-                  className="scroll_bottom"
-                  onClick={() => {
-                    dispatch(chatActions.manualScrollBottom());
-                  }}
-                >
-                  <i className="bx bx-chevron-down"></i>
-                </div>
-              )}
+              <div
+                className="scroll_bottom hidden"
+                ref={scrollBottomBtnRef}
+                onClick={() => {
+                  dispatch(chatActions.manualScrollBottom());
+                }}
+              >
+                <i className="bx bx-chevron-down"></i>
+              </div>
             </Fragment>
           )}
 
@@ -458,11 +469,7 @@ export function Chat() {
                     type="text"
                     placeholder="Enter your message"
                     className="form-control"
-                    onChange={(event: any) => {
-                      setNewMsg(event.target.value);
-                    }}
                     onKeyUp={sendMsgOnEnter}
-                    value={newMsg}
                   />
                 </div>
                 <i className="bx bx-send" onClick={handleSendMsg}></i>
@@ -491,7 +498,7 @@ export function Chat() {
                     setRepliedMsg(undefined);
 
                     // auto focus the input field when reply box is closed
-                    msgInput.current?.focus();
+                    msgInput.current!.focus();
                   }}
                 ></i>
               </div>
@@ -502,3 +509,5 @@ export function Chat() {
     </ChatStyles>
   );
 }
+
+export const Chat = React.memo(FnChat);

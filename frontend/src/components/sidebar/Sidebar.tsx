@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { NavLink } from "react-router-dom";
+import { List, Skeleton } from "antd";
 import { useAppDispatch } from "app/hooks";
 import { RootState } from "app/store";
+import { NewConversationModal } from "components/conversation/NewConversationModal";
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import { NavLink } from "react-router-dom";
 import { logout } from "redux/auth-slice";
 import { SidebarStyles } from "styles";
-import { NewConversationModal } from "components/conversation/NewConversationModal";
 import { SidebarChat } from "./SidebarChat";
-import { List, Skeleton } from "antd";
 
 export function Sidebar() {
   const dispatch = useAppDispatch();
@@ -28,10 +28,6 @@ export function Sidebar() {
     // notify socket server that a user has disconnected as soon as he/she logs out
     socket?.disconnect();
   };
-
-  // useEffect(() => {
-  //   dispatch(chatActions.conversationSeen());
-  // }, [dispatch]);
 
   return (
     <SidebarStyles>
@@ -98,7 +94,6 @@ export function Sidebar() {
                 className={({ isActive }) => (isActive ? "highlighted" : "")}
                 key={c._id}
                 to={c._id}
-                // onClick={() => dispatch(chatActions.conversationSeen())}
               >
                 <SidebarChat conversation={c} />
               </NavLink>
